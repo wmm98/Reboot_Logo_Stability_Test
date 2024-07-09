@@ -1,2 +1,2 @@
 # Camera_Stability_Test
-摄像头卡logo测试
+开关机压测卡logo测试
