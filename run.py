@@ -1,50 +1,92 @@
+import time
+from Common import config, image_analysis, camera_operate, keying, m_serial, adb_timer
+import os
+
+conf = config.Config()
+analysis = image_analysis.Analysis()
+camera = camera_operate.Camera()
+key_ing = keying.KeyPhoto()
+t_ser = m_serial.SerialD()
+
+
+# 检查adb在线
+def check_adb_online_with_thread(device, timeout=90):
+    adb_checker = adb_timer.ADBChecker(device, timeout)
+    adb_checker.start_check()
+
+    # Wait until timeout or ADB is found
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        if adb_checker.result:
+            adb_checker.timeout_handler()
+            return True
+        time.sleep(1)
+    return False
+
+
+# 检查adb在线
+def check_boot_complete_with_thread(device, timeout=120):
+    adb_checker = adb_timer.ADBChecker(device, timeout)
+    adb_checker.start_check(boot=True)
+
+    # Wait until timeout or ADB is found
+    start_time = time.time()
+    while time.time() - start_time < timeout:
+        if adb_checker.result:
+            adb_checker.timeout_handler()
+            return True
+        time.sleep(1)
+    return False
+
+
 if __name__ == '__main__':
-    import time
-    from Common import config, image_analysis, camera_operate, keying, m_serial
-    import os
-    conf = config.Config()
-    analysis = image_analysis.Analysis()
-    camera = camera_operate.Camera()
-    key_ing = keying.KeyPhoto()
-    t_ser = m_serial.SerialD()
-
+    # 先对设备的时间进行修改，使用网络时间，方便看log
     # 图片处理相关
-    origin_logo_img = os.path.join(conf.logo_key_path, "Key2.png")
-
-    f = open("data.txt", "w+")
+    origin_logo_logo_img = os.path.join(conf.logo_logo_path, "Logo1.png")
+    origin_logo_key_img = os.path.join(conf.logo_key_path, "Key.png")
+    # 需要在前端先删除存留的失败照片
+    failed_img_path = os.path.join(conf.camera_key_img_path, "Failed.png")
 
     flag = 0
     while True:
         flag += 1
         # 上下电启动
-        t_ser.loginSer("COM27")
+        t_ser.loginSer("COM55")
         t_ser.send_ser_disconnect_cmd()
         time.sleep(1)
         t_ser.send_ser_connect_cmd()
-        time.sleep(70)
 
-        # 拍照
-        origin_camera_path = os.path.join(conf.camera_origin_img_path, "Origin.png")
-        if os.path.exists(origin_camera_path):
-            os.remove(origin_camera_path)
-        camera.take_photo(origin_camera_path)
-        # 抠图
-        camera_key_img_path = os.path.join(conf.camera_key_img_path, "Key.png")
-        if os.path.exists(camera_key_img_path):
-            os.remove(camera_key_img_path)
-        key_ing.save_key_photo(origin_camera_path, camera_key_img_path)
+        if check_adb_online_with_thread("3TP0110TB20222800005"):
+            if check_boot_complete_with_thread("3TP0110TB20222800005", timeout=120):
+                print("设备完全启动")
+            else:
+                print("设备无法完全启动， 请检查！！！！")
 
-        # 对比抠图
-        percent = analysis.get_similarity(origin_logo_img, camera_key_img_path)
+            # 拍照
+            time.sleep(60)
+            origin_camera_path = os.path.join(conf.camera_origin_img_path, "Origin.png")
+            if os.path.exists(origin_camera_path):
+                os.remove(origin_camera_path)
+            camera.take_photo(origin_camera_path)
+            # 抠图
+            camera_key_img_path = os.path.join(conf.camera_key_img_path, "Key.png")
+            if os.path.exists(camera_key_img_path):
+                os.remove(camera_key_img_path)
+            key_ing.save_key_photo(origin_camera_path, camera_key_img_path)
 
-        t_ser.logoutSer()
-        t_f = open("data.txt", "a")
-        t_f.write(str(percent) + "\n")
-        t_f.close()
+            # 对比抠图/原图 origin_camera_path, origin_logo_logo_img
+            percent = analysis.get_similarity(origin_logo_key_img, camera_key_img_path)
+            if percent > 95:
+                os.rename(camera_key_img_path, failed_img_path)
+                break
+            t_ser.logoutSer()
+        else:
+            t_ser.loginSer("COM55")
+            t_ser.send_ser_connect_cmd()
+            time.sleep(1)
 
-
-
-
-
-
-
+            if check_adb_online_with_thread("3TP0110TB20222800005"):
+                print("设备adb无法起来无法启动")
+                # 比对黑暗图片
+                pass
+        time.sleep(5)

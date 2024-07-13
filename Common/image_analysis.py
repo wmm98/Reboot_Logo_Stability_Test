@@ -48,10 +48,10 @@ class Analysis:
 
         # 将 SSIM 转换为相似度百分比
         similarity_percentage = ssim_index * 100
-
+        print(type(similarity_percentage))
         # 打印相似度百分比
         print(f"图片相似度百分比: {similarity_percentage:.2f}%")
 
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
-        return similarity_percentage
+        return float(similarity_percentage)
