@@ -1,12 +1,14 @@
 import time
 from Common import config, image_analysis, camera_operate, keying, m_serial, adb_timer
 import os
+from Common.device_check import DeviceCheck
 
 conf = config.Config()
 analysis = image_analysis.Analysis()
 camera = camera_operate.Camera()
 key_ing = keying.KeyPhoto()
 t_ser = m_serial.SerialD()
+device_check = DeviceCheck("3TP0110TB20222800005")
 
 
 # 检查adb在线
@@ -44,8 +46,10 @@ if __name__ == '__main__':
     # 图片处理相关
     origin_logo_logo_img = os.path.join(conf.logo_logo_path, "Logo1.png")
     origin_logo_key_img = os.path.join(conf.logo_key_path, "Key.png")
-    # 需要在前端先删除存留的失败照片
+    # 需要在前端先删除存留的失败照片,调试的时候先在这里删除
     failed_img_path = os.path.join(conf.camera_key_img_path, "Failed.png")
+    if os.path.exists(failed_img_path):
+        os.remove(failed_img_path)
 
     flag = 0
     while True:
@@ -78,6 +82,8 @@ if __name__ == '__main__':
             percent = analysis.get_similarity(origin_logo_key_img, camera_key_img_path)
             if percent > 95:
                 os.rename(camera_key_img_path, failed_img_path)
+                # 捕捉前半个钟的log
+                device_check.logcat(60)
                 break
             t_ser.logoutSer()
         else:

@@ -1,4 +1,5 @@
 import subprocess
+from Common.config import Config
 
 
 class Shell:
@@ -34,3 +35,6 @@ class DeviceCheck:
     def device_boot(self):
         boot_res = self.shell.invoke("adb -s %s shell getprop sys.boot_completed" % self.device_name)
         return boot_res
+
+    def logcat(self, log_time):
+        self.shell.invoke("adb -s %s logcat -t %d >> %s" % (self.device_name, log_time, Config.log_path))
