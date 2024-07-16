@@ -12,6 +12,7 @@ import threading
 from datetime import datetime
 from PyQt5.QtGui import QPixmap
 from Common.device_check import Shell
+import serial.tools.list_ports
 
 shell = Shell()
 
@@ -28,6 +29,7 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def intiui(self):
         self.select_devices_name()
+        self.group.buttonClicked[int].connect(self.on_check_box_clicked)
         self.logo_upload_button.clicked.connect(self.upload_reboot_logo)
         self.show_keying_button.clicked.connect(self.show_keying_image)
         self.submit_button.clicked.connect(self.handle_submit)
@@ -124,6 +126,55 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
             self.err_COM_Tips.setVisible(False)
             self.COM_name.setDisabled(True)
 
+    def on_check_box_clicked(self, id):
+        # 处理复选框点击事件
+        if id == 1:
+            self.COM1_name.setEnabled(True)
+            self.COM2_name.setEnabled(True)
+            self.COM3_name.setDisabled(True)
+            self.COM3_name.clear()
+        elif id == 2:
+            self.COM2_name.setEnabled(True)
+            self.COM1_name.setDisabled(True)
+            self.COM3_name.setDisabled(True)
+            self.COM1_name.clear()
+            self.COM3_name.clear()
+        elif id == 3:
+            self.COM1_name.setEnabled(True)
+            self.COM2_name.setDisabled(True)
+            self.COM3_name.setDisabled(True)
+            self.COM2_name.clear()
+            self.COM3_name.clear()
+        elif id == 4:
+            self.COM3_name.setEnabled(True)
+            self.COM1_name.setEnabled(True)
+            self.COM2_name.setDisabled(True)
+            self.COM2_name.clear()
+        # 显示COMs
+        self.list_COM()
+
+    def list_COM(self):
+        ports = self.get_current_COM()
+        for port in ports:
+            if self.COM1_name.isEnabled():
+                self.COM1_name.addItem(port)
+            if self.COM2_name.isEnabled():
+                self.COM2_name.addItem(port)
+            if self.COM3_name.isEnabled():
+                self.COM3_name.addItem(port)
+
+    def get_current_COM(self):
+        serial_list = []
+        ports = list(serial.tools.list_ports.comports())
+        if len(ports) != 0:
+            for port in ports:
+                if 'SERIAL' in port.description:
+                    COM_name = port.device.replace("\n", "").replace(" ", "").replace("\r", "")
+                    serial_list.append(COM_name)
+            return serial_list
+        else:
+            return []
+
     def select_devices_name(self):
         devices_info = shell.invoke("adb devices").split("\r\n")[1:-2]
         devices = [device_str.split("\t")[0] for device_str in devices_info if device_str.split("\t")[1] == "device"]
@@ -140,7 +191,7 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         else:
             print("无法加载照片")
 
-        self.show_failed_image()
+        # self.show_failed_image()
 
     def show_failed_image(self):
         print(self.logo_path_edit.text())

@@ -31,8 +31,16 @@ class Ui_MainWindow(object):
         left_widget = QWidget()
         self.verticalLayout_left = QtWidgets.QVBoxLayout(left_widget)
 
-        self.boot_way = QtWidgets.QLabel("开关机方式:")
+        layout_device_info = QHBoxLayout()
+        self.label_device_name = QtWidgets.QLabel("设备名称:")
+        self.edit_device_name = QComboBox(self)
+        layout_device_info.addWidget(self.label_device_name)
+        layout_device_info.addWidget(self.edit_device_name)
+        layout_device_info.addStretch(1)
+        self.verticalLayout_left.addLayout(layout_device_info)
+
         layout_device_control = QHBoxLayout()
+        self.boot_way = QtWidgets.QLabel("开关机方式:")
         self.is_power_button_boot = QCheckBox("适配器+按键")
         self.is_power_boot = QCheckBox("适配器")
         self.is_button_boot = QCheckBox("电池按键")
@@ -53,35 +61,31 @@ class Ui_MainWindow(object):
         self.group.addButton(self.is_900_boot, id=4)
         self.verticalLayout_left.addLayout(layout_device_control)
 
-        layout_device_info = QHBoxLayout()
-        self.label_device_name = QtWidgets.QLabel("设备名称:")
-        self.edit_device_name = QComboBox(self)
-        layout_device_info.addWidget(self.label_device_name, 1)
-        layout_device_info.addWidget(self.edit_device_name, 2)
-
         layout_com = QHBoxLayout()
+        self.COMs_label = QtWidgets.QLabel("COMs配置:")
         self.COM1_label = QtWidgets.QLabel("按键COM:")
         self.COM1_name = QComboBox(self)
+        self.COM1_name.setDisabled(True)
         # self.COM1_name.setDisabled(True)
-        layout_com.addWidget(self.COM1_label, 1)
-        layout_com.addWidget(self.COM1_name, 1)
+        layout_com.addWidget(self.COMs_label)
+        layout_com.addWidget(self.COM1_label)
+        layout_com.addWidget(self.COM1_name)
 
         self.COM2_label = QtWidgets.QLabel("适配器COM:")
         self.COM2_name = QComboBox(self)
+        self.COM2_name.setDisabled(True)
         # self.COM1_name.setDisabled(True)
-        layout_com.addWidget(self.COM2_label, 1)
-        layout_com.addWidget(self.COM2_name, 1)
+        layout_com.addWidget(self.COM2_label)
+        layout_com.addWidget(self.COM2_name)
 
         self.COM3_label = QtWidgets.QLabel("USB COM:")
         self.COM3_name = QComboBox(self)
+        self.COM3_name.setDisabled(True)
         # self.COM1_name.setDisabled(True)
-        layout_com.addWidget(self.COM3_label, 1)
-        layout_com.addWidget(self.COM3_name, 1)
+        layout_com.addWidget(self.COM3_label)
+        layout_com.addWidget(self.COM3_name)
         layout_com.addStretch(1)
-        # 装饰的label
-        # layout_device_info.addWidget(QtWidgets.QLabel(), 1)
-
-        self.verticalLayout_left.addLayout(layout_device_info)
+        self.verticalLayout_left.addLayout(layout_com)
 
         # 上传图片
         self.reboot_logo_info = QtWidgets.QLabel("上传开机logo照片：")
@@ -102,15 +106,15 @@ class Ui_MainWindow(object):
         self.exp_image_label.setScaledContents(True)
         self.verticalLayout_left.addWidget(self.exp_image_label)
 
-        # 提交按钮
-        self.submit_button = QtWidgets.QPushButton("开始压测")
-        self.verticalLayout_left.addWidget(self.submit_button)
-
         self.test_image_label = QtWidgets.QLabel()
         self.test_image_label.setScaledContents(True)
         self.verticalLayout_left.addWidget(self.test_image_label)
         self.verticalLayout_left.setSpacing(10)
         # self.main_layout.setSpacing(2)
+
+        # 提交按钮
+        self.submit_button = QtWidgets.QPushButton("开始压测")
+        self.verticalLayout_left.addWidget(self.submit_button)
 
         # 添加左边部分
         # 右侧部件
