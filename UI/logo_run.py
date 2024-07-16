@@ -4,7 +4,7 @@ import sys
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import Qt, QTimer, QRunnable, QThreadPool
-from tree_widget import Ui_MainWindow
+from UI.tree_widget import Ui_MainWindow
 import yaml
 import os
 import shutil
@@ -13,8 +13,10 @@ from datetime import datetime
 from PyQt5.QtGui import QPixmap
 from Common.device_check import Shell
 import serial.tools.list_ports
+from Common.keying import KeyPhoto
 
 shell = Shell()
+key_img = KeyPhoto()
 
 
 class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -103,29 +105,6 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         if file_name:
             self.logo_path_edit.setText(file_name)
 
-    def onSerialCheckboxStateChanged(self, state):
-        if state == 2:  # 选中状态
-            self.COM_name.setEnabled(True)
-            self.edit_device_name_COM.setEnabled(True)
-            self.edit_device_name.setDisabled(True)
-            ports = self.serial.get_current_COM()
-            for port in ports:
-                self.COM_name.addItem(port)
-            if len(ports) == 0:
-                self.err_COM_Tips.setText("没有可用的COM口, 请检查！！！")
-                self.err_COM_Tips.setVisible(True)
-                self.COM_name.setEnabled(True)
-            elif len(ports) == 1:
-                pass
-            else:
-                self.err_COM_Tips.setText("当前多个COM可用, 请选择需测试COM口！！！")
-                self.err_COM_Tips.setVisible(True)
-        else:
-            self.edit_device_name_COM.setDisabled(True)
-            self.edit_device_name.setEnabled(True)
-            self.err_COM_Tips.setVisible(False)
-            self.COM_name.setDisabled(True)
-
     def on_check_box_clicked(self, id):
         # 处理复选框点击事件
         if id == 1:
@@ -182,26 +161,27 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
             self.edit_device_name.addItem(str(device))
 
     def show_keying_image(self):
-        print(self.logo_path_edit.text())
-        pixmap = QPixmap(self.logo_path_edit.text())
-        print(pixmap)
+        self.key_photo()
+        pixmap = QPixmap(os.path.join(self.logo_key_path, "Key.png"))
         if not pixmap.isNull():
             scaled_pixmap = pixmap.scaled(439, 311)
             self.exp_image_label.setPixmap(scaled_pixmap)
-        else:
-            print("无法加载照片")
 
         # self.show_failed_image()
 
+    def key_photo(self):
+        original_path = self.logo_path_edit.text().strip()
+        if len(original_path) == 0:
+            self.get_message_box("请上传图片再抠图")
+            return
+        new_path = os.path.join(self.logo_key_path, "Key.png")
+        key_img.save_key_photo(original_path, new_path)
+
     def show_failed_image(self):
-        print(self.logo_path_edit.text())
-        pixmap = QPixmap(self.logo_path_edit.text())
-        print(pixmap)
+        pixmap = QPixmap(os.path.join(self.logo_key_path, "Key.png"))
         if not pixmap.isNull():
             scaled_pixmap = pixmap.scaled(429, 311)
             self.test_image_label.setPixmap(scaled_pixmap)
-        else:
-            print("无法加载照片")
 
 
 if __name__ == '__main__':

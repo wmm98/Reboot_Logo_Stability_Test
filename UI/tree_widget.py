@@ -10,6 +10,8 @@ class Ui_MainWindow(object):
     options |= QtWidgets.QFileDialog.ReadOnly
     project_path = path_dir = str(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
     print(project_path)
+    logo_take_path = os.path.join(project_path, "Photo", "Logo", "Logo")
+    logo_key_path = os.path.join(project_path, "Photo", "Logo", "Key")
 
     # yaml_file_path = os.path.join(project_path, "Conf", "test_data.yaml")
     # # 加载 YAML 文件
