@@ -9,6 +9,7 @@ class Config:
 
     logo_key_path = os.path.join(project_path, "Photo", "Logo", "Key")
     logo_logo_path = os.path.join(project_path, "Photo", "Logo", "Logo")
+    log_path = os.path.join(project_path, "Log", "log_failed.txt")
 
 
 

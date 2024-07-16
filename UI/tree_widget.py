@@ -1,7 +1,8 @@
 import os
 import yaml
-from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtWidgets import QHBoxLayout, QCheckBox, QLineEdit, QCompleter, QComboBox, QButtonGroup
+from PyQt5 import QtCore, QtWidgets, Qt
+from PyQt5.QtWidgets import QHBoxLayout, QCheckBox, QLineEdit, QCompleter, QComboBox, QButtonGroup, QWidget, QSplitter, \
+    QSizePolicy
 
 
 class Ui_MainWindow(object):
@@ -10,109 +11,140 @@ class Ui_MainWindow(object):
     project_path = path_dir = str(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
     print(project_path)
 
-    yaml_file_path = os.path.join(project_path, "Conf", "test_data.yaml")
-    # 加载 YAML 文件
-    with open(yaml_file_path, 'r', encoding="utf-8") as file:
-        data = yaml.safe_load(file)
+    # yaml_file_path = os.path.join(project_path, "Conf", "test_data.yaml")
+    # # 加载 YAML 文件
+    # with open(yaml_file_path, 'r', encoding="utf-8") as file:
+    #     data = yaml.safe_load(file)
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(700, 300)
+        MainWindow.resize(1000, 600)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
-        self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
-        self.verticalLayout.setObjectName("verticalLayout")
+        # 创建水平布局
+        self.main_layout = QHBoxLayout(self.centralwidget)
 
-        self.device_info = QtWidgets.QLabel("摄像头信息：")
-        self.verticalLayout.addWidget(self.device_info)
+        # 创建 QSplitter 控件
+        splitter = QSplitter()
+        self.main_layout.addWidget(splitter)
 
-        # 将标签添加到水平布局中
-        # 添加checkbox
-        standard_layout = QHBoxLayout()
-        self.test_standard = QtWidgets.QLabel("指标：")
-        self.is_standard_device = QCheckBox("标准")
-        self.is_quality_device = QCheckBox("精品")
-        standard_layout.addWidget(self.test_standard)
-        standard_layout.addWidget(self.is_standard_device)
-        standard_layout.addWidget(self.is_quality_device)
-        standard_layout.addStretch(1)
-        self.standard_group = QButtonGroup()
-        self.standard_group.addButton(self.is_standard_device, id=1)
-        self.standard_group.addButton(self.is_quality_device, id=2)
-        # 设置按钮组中只能有一个选中
-        self.standard_group.setExclusive(True)
-        self.verticalLayout.addLayout(standard_layout)
+        # 左侧所有部件
+        left_widget = QWidget()
+        self.verticalLayout_left = QtWidgets.QVBoxLayout(left_widget)
 
-        layout = QHBoxLayout()
-        self.camera_pixels = QtWidgets.QLabel("像素：")
-        self.is_800_camera = QCheckBox("800万")
-        self.is_500_camera = QCheckBox("500万")
-        self.is_200_camera = QCheckBox("200万")
-        self.is_1300_camera = QCheckBox("1300万")
-        self.is_1600_camera = QCheckBox("1600万")
-
-        layout.addWidget(self.camera_pixels)
-        layout.addWidget(self.is_800_camera)
-        layout.addWidget(self.is_500_camera)
-        layout.addWidget(self.is_200_camera)
-        layout.addWidget(self.is_1300_camera)
-        layout.addWidget(self.is_1600_camera)
-        # 添加一个拉伸因子以将水平布局放在窗口底部
-        layout.addStretch(1)
+        self.boot_way = QtWidgets.QLabel("开关机方式:")
+        layout_device_control = QHBoxLayout()
+        self.is_power_button_boot = QCheckBox("适配器+按键")
+        self.is_power_boot = QCheckBox("适配器")
+        self.is_button_boot = QCheckBox("电池按键")
+        self.is_900_boot = QCheckBox("900P")
+        layout_device_control.addWidget(self.boot_way)
+        layout_device_control.addWidget(self.is_power_button_boot)
+        layout_device_control.addWidget(self.is_power_boot)
+        layout_device_control.addWidget(self.is_button_boot)
+        layout_device_control.addWidget(self.is_900_boot)
+        layout_device_control.addStretch(1)
         # 将水平布局放入垂直布局
 
         # 创建按钮组并将复选框添加到按钮组中
         self.group = QButtonGroup()
-        self.group.addButton(self.is_800_camera, id=1)
-        self.group.addButton(self.is_500_camera, id=2)
-        self.group.addButton(self.is_200_camera, id=3)
-        self.group.addButton(self.is_1300_camera, id=4)
-        self.group.addButton(self.is_1600_camera, id=5)
+        self.group.addButton(self.is_power_button_boot, id=1)
+        self.group.addButton(self.is_power_boot, id=2)
+        self.group.addButton(self.is_button_boot, id=3)
+        self.group.addButton(self.is_900_boot, id=4)
+        self.verticalLayout_left.addLayout(layout_device_control)
 
-        # 设置按钮组中只能有一个选中
-        self.group.setExclusive(True)
-        self.verticalLayout.addLayout(layout)
+        layout_device_info = QHBoxLayout()
+        self.label_device_name = QtWidgets.QLabel("设备名称:")
+        self.edit_device_name = QComboBox(self)
+        layout_device_info.addWidget(self.label_device_name, 1)
+        layout_device_info.addWidget(self.edit_device_name, 2)
 
-        light_layout = QHBoxLayout()
-        self.test_section = QtWidgets.QLabel("场景：")
-        self.is_hj_test = QCheckBox("HJ(灰阶)")
-        self.is_f_test = QCheckBox("A")
-        self.is_d65_test = QCheckBox("D65")
-        self.is_cwf_test = QCheckBox("CWF")
-        self.is_tl84_test = QCheckBox("TL84")
+        layout_com = QHBoxLayout()
+        self.COM1_label = QtWidgets.QLabel("按键COM:")
+        self.COM1_name = QComboBox(self)
+        # self.COM1_name.setDisabled(True)
+        layout_com.addWidget(self.COM1_label, 1)
+        layout_com.addWidget(self.COM1_name, 1)
 
-        light_layout.addWidget(self.test_section)
-        light_layout.addWidget(self.is_hj_test)
-        light_layout.addWidget(self.is_f_test)
-        light_layout.addWidget(self.is_d65_test)
-        light_layout.addWidget(self.is_cwf_test)
-        light_layout.addWidget(self.is_tl84_test)
-        # 添加一个拉伸因子以将水平布局放在窗口底部
-        light_layout.addStretch(1)
-        self.verticalLayout.addLayout(light_layout)
-        # csv命名提示
-        csv_name_tips = QtWidgets.QLabel("csv命名提示：请以 HJ_summary.csv， A_summary.csv， TL84_summary.csv， D65_summary.csv， CWF_summary.csv 命名")
-        csv_name_tips.setStyleSheet("color: blue;")
-        self.verticalLayout.addWidget(csv_name_tips)
+        self.COM2_label = QtWidgets.QLabel("适配器COM:")
+        self.COM2_name = QComboBox(self)
+        # self.COM1_name.setDisabled(True)
+        layout_com.addWidget(self.COM2_label, 1)
+        layout_com.addWidget(self.COM2_name, 1)
 
-        layout_product = QHBoxLayout()
-        self.camera_product_name = QtWidgets.QLabel("厂家：")
-        self.camera_product_edit = QtWidgets.QLineEdit()
-        self.project_name = QtWidgets.QLabel("项目名称：")
-        self.project_edit = QtWidgets.QLineEdit()
-        layout_product.addWidget(self.camera_product_name)
-        layout_product.addWidget(self.camera_product_edit)
-        layout_product.addWidget(self.project_name)
-        layout_product.addWidget(self.project_edit)
-        self.verticalLayout.addLayout(layout_product)
+        self.COM3_label = QtWidgets.QLabel("USB COM:")
+        self.COM3_name = QComboBox(self)
+        # self.COM1_name.setDisabled(True)
+        layout_com.addWidget(self.COM3_label, 1)
+        layout_com.addWidget(self.COM3_name, 1)
+        layout_com.addStretch(1)
+        # 装饰的label
+        # layout_device_info.addWidget(QtWidgets.QLabel(), 1)
 
-        self.result_folder_info = QtWidgets.QLabel("上传Imatest生成的result文件夹：")
-        self.verticalLayout.addWidget(self.result_folder_info)
-        layout_upload_folder = QHBoxLayout()
-        self.folder_path_edit = QtWidgets.QLineEdit()
-        layout_upload_folder.addWidget(self.folder_path_edit)
-        self.folder_upload_button = QtWidgets.QPushButton("点击上传")
-        layout_upload_folder.addWidget(self.folder_upload_button)
-        self.verticalLayout.addLayout(layout_upload_folder)
+        self.verticalLayout_left.addLayout(layout_device_info)
+
+        # 上传图片
+        self.reboot_logo_info = QtWidgets.QLabel("上传开机logo照片：")
+        self.verticalLayout_left.addWidget(self.reboot_logo_info)
+        layout_upload_logo = QHBoxLayout()
+        self.logo_path_edit = QtWidgets.QLineEdit()
+        layout_upload_logo.addWidget(self.logo_path_edit)
+        self.logo_upload_button = QtWidgets.QPushButton("点击上传")
+        layout_upload_logo.addWidget(self.logo_upload_button)
+        self.verticalLayout_left.addLayout(layout_upload_logo)
+
+        # 创建 QLabel 用于显示照片
+        # 显示图片
+        self.show_keying_button = QtWidgets.QPushButton("显示抠图")
+        self.verticalLayout_left.addWidget(self.show_keying_button)
+
+        self.exp_image_label = QtWidgets.QLabel()
+        self.exp_image_label.setScaledContents(True)
+        self.verticalLayout_left.addWidget(self.exp_image_label)
+
+        # 提交按钮
+        self.submit_button = QtWidgets.QPushButton("开始压测")
+        self.verticalLayout_left.addWidget(self.submit_button)
+
+        self.test_image_label = QtWidgets.QLabel()
+        self.test_image_label.setScaledContents(True)
+        self.verticalLayout_left.addWidget(self.test_image_label)
+        self.verticalLayout_left.setSpacing(10)
+        # self.main_layout.setSpacing(2)
+
+        # 添加左边部分
+        # 右侧部件
+        right_widget = QWidget()
+        self.verticalLayout_right = QtWidgets.QVBoxLayout(right_widget)
+        self.verticalLayout_right.addWidget(QCheckBox("控件3"))  # 右侧列的控件1
+        self.verticalLayout_right.addWidget(QCheckBox("控件4"))  # 右侧列的控件2
+        self.verticalLayout_right.addWidget(QCheckBox("控件5"))  # 右侧列的控件2
+        self.verticalLayout_right.addWidget(QCheckBox("控件6"))  # 右侧列的控件2
+        self.edit = QLineEdit()
+        self.verticalLayout_right.addWidget(self.edit)  # 右侧列的控件2
+        self.verticalLayout_left.addStretch(1)
+        # self.verticalLayout_left.setSpacing(10)  # 设置左侧垂直布局的间距为10像素
+        # self.verticalLayout_right.setSpacing(10)  # 设置右侧垂直布局的间距为10像素
+
+        splitter.addWidget(left_widget)
+        splitter.addWidget(right_widget)
+        splitter.setStyleSheet("""
+                                    QSplitter::handle {
+                                        background: #f0f0f0;  /* 分割条的颜色为最浅的灰色 */
+                                        width: 1px;           /* 分割条的最细宽度 */
+                                        border: 1px solid #CCCCCC; /* 分割条的边框颜色为灰白色 */
+                                    }
+                                    QSplitter::handle:horizontal {
+                                        height: 100%;  /* 垂直分割条的高度 */
+                                    }
+                                    QSplitter::handle:vertical {
+                                        width: 100%;   /* 水平分割条的宽度 */
+                                    }
+                                """)
+
+        # 设置伸展因子确保两侧距离一致
+        splitter.setStretchFactor(0, 1)  # 左侧部件的伸展因子
+        splitter.setStretchFactor(1, 3)  # 右侧部件的伸展因子
 
         MainWindow.setCentralWidget(self.centralwidget)
         self.menubar = QtWidgets.QMenuBar(MainWindow)
@@ -124,16 +156,6 @@ class Ui_MainWindow(object):
         MainWindow.setStatusBar(self.statusbar)
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
-
-        # 提交按钮
-        self.submit_button = QtWidgets.QPushButton("开始生成报告")
-        self.verticalLayout.addWidget(self.submit_button)
-
-        self.tips = QtWidgets.QLabel()
-        self.tips.setStyleSheet("color: red;")
-        self.tips.setText("未开始生成报告...")
-        # self.tips.setVisible(False)
-        self.verticalLayout.addWidget(self.tips)
 
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
