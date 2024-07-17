@@ -1,8 +1,6 @@
 import os
-import yaml
 from PyQt5 import QtCore, QtWidgets, Qt
-from PyQt5.QtWidgets import QHBoxLayout, QCheckBox, QLineEdit, QCompleter, QComboBox, QButtonGroup, QWidget, QSplitter, \
-    QSizePolicy
+from PyQt5.QtWidgets import QHBoxLayout, QCheckBox, QLineEdit, QComboBox, QButtonGroup, QWidget, QSplitter, QPlainTextEdit
 
 
 class Ui_MainWindow(object):
@@ -12,6 +10,9 @@ class Ui_MainWindow(object):
     print(project_path)
     logo_take_path = os.path.join(project_path, "Photo", "Logo", "Logo")
     logo_key_path = os.path.join(project_path, "Photo", "Logo", "Key")
+    debug_log_path = os.path.join(project_path, "Log", "Debug", "debug_log.txt")
+    if os.path.exists(debug_log_path):
+        os.remove(debug_log_path)
 
     # yaml_file_path = os.path.join(project_path, "Conf", "test_data.yaml")
     # # 加载 YAML 文件
@@ -68,7 +69,6 @@ class Ui_MainWindow(object):
         self.COM1_label = QtWidgets.QLabel("按键COM:")
         self.COM1_name = QComboBox(self)
         self.COM1_name.setDisabled(True)
-        # self.COM1_name.setDisabled(True)
         layout_com.addWidget(self.COMs_label)
         layout_com.addWidget(self.COM1_label)
         layout_com.addWidget(self.COM1_name)
@@ -122,15 +122,24 @@ class Ui_MainWindow(object):
         # 右侧部件
         right_widget = QWidget()
         self.verticalLayout_right = QtWidgets.QVBoxLayout(right_widget)
-        self.verticalLayout_right.addWidget(QCheckBox("控件3"))  # 右侧列的控件1
-        self.verticalLayout_right.addWidget(QCheckBox("控件4"))  # 右侧列的控件2
-        self.verticalLayout_right.addWidget(QCheckBox("控件5"))  # 右侧列的控件2
-        self.verticalLayout_right.addWidget(QCheckBox("控件6"))  # 右侧列的控件2
-        self.edit = QLineEdit()
-        self.verticalLayout_right.addWidget(self.edit)  # 右侧列的控件2
+        self.log_edit = QPlainTextEdit()
+        self.log_edit.setReadOnly(True)
+        self.log_edit.setUndoRedoEnabled(False)
+        # self.log_edit.setFocusPolicy()
+        # self.text_edit.setTextInteractionFlags(Qt.TextSelectableByMouse)
+        # self.log_edit.se
+        self.verticalLayout_right.addWidget(self.log_edit)
+
+        #
+        # self.verticalLayout_right.addWidget(QCheckBox("控件3"))  # 右侧列的控件1
+        # self.verticalLayout_right.addWidget(QCheckBox("控件4"))  # 右侧列的控件2
+        # self.verticalLayout_right.addWidget(QCheckBox("控件5"))  # 右侧列的控件2
+        # self.verticalLayout_right.addWidget(QCheckBox("控件6"))  # 右侧列的控件2
+        # self.edit = QLineEdit()
+        # self.verticalLayout_right.addWidget(self.edit)  # 右侧列的控件2
         self.verticalLayout_left.addStretch(1)
-        # self.verticalLayout_left.setSpacing(10)  # 设置左侧垂直布局的间距为10像素
-        # self.verticalLayout_right.setSpacing(10)  # 设置右侧垂直布局的间距为10像素
+        self.verticalLayout_left.setSpacing(10)  # 设置左侧垂直布局的间距为10像素
+        self.verticalLayout_right.setSpacing(10)  # 设置右侧垂直布局的间距为10像素
 
         splitter.addWidget(left_widget)
         splitter.addWidget(right_widget)
