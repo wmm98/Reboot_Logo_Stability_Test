@@ -118,6 +118,10 @@ class Ui_MainWindow(object):
         self.submit_button = QtWidgets.QPushButton("开始压测")
         self.verticalLayout_left.addWidget(self.submit_button)
 
+        self.stop_process_button = QtWidgets.QPushButton("停止压测")
+        self.stop_process_button.setDisabled(True)
+        self.verticalLayout_left.addWidget(self.stop_process_button)
+
         # 添加左边部分
         # 右侧部件
         right_widget = QWidget()

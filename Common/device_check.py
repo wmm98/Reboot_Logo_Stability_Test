@@ -7,7 +7,7 @@ class Shell:
     def invoke(cmd, runtime=120):
         try:
             output, errors = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
-                                              stderr=subprocess.PIPE).communicate(
+                                              stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW).communicate(
                 timeout=runtime)
             o = output.decode("utf-8")
             return o
@@ -26,7 +26,6 @@ class DeviceCheck:
 
     def device_is_online(self):
         devices = self.shell.invoke("adb devices")
-        print(devices)
         if self.device_name + "device" in devices.replace('\r', '').replace('\t', '').replace(' ', ''):
             return True
         else:

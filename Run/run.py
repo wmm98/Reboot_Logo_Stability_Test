@@ -63,8 +63,8 @@ if __name__ == '__main__':
     while True:
         flag += 1
         log.info("********************%d******************************" % flag)
+        print("********************%d******************************" % flag)
         time.sleep(1)
-
 
     # while True:
     #     flag += 1
@@ -110,4 +110,3 @@ if __name__ == '__main__':
     #             # 比对黑暗图片
     #             pass
     #     time.sleep(5)
-
