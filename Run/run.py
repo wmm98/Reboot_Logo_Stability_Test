@@ -63,7 +63,9 @@ if __name__ == '__main__':
     while True:
         flag += 1
         log.info("********************%d******************************" % flag)
-        print("********************%d******************************" % flag)
+        # print(device_check.device_is_online())
+        # log.info()
+        # print("********************%d******************************" % flag)
         time.sleep(1)
 
     # while True:

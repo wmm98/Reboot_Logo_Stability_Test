@@ -1,6 +1,8 @@
 import os
-from PyQt5 import QtCore, QtWidgets, Qt
-from PyQt5.QtWidgets import QHBoxLayout, QCheckBox, QLineEdit, QComboBox, QButtonGroup, QWidget, QSplitter, QPlainTextEdit
+from PyQt5 import QtCore, QtWidgets
+from PyQt5.QtWidgets import QHBoxLayout, QCheckBox, QLineEdit, QComboBox, QButtonGroup, QWidget, QSplitter, \
+    QPlainTextEdit
+from PyQt5.QtCore import pyqtSlot
 
 
 class Ui_MainWindow(object):
@@ -126,7 +128,8 @@ class Ui_MainWindow(object):
         # 右侧部件
         right_widget = QWidget()
         self.verticalLayout_right = QtWidgets.QVBoxLayout(right_widget)
-        self.log_edit = QPlainTextEdit()
+        # self.log_edit = QPlainTextEdit()
+        self.log_edit = ScrollablePlainTextEdit(self)
         self.log_edit.setReadOnly(True)
         self.log_edit.setUndoRedoEnabled(False)
         # self.log_edit.setFocusPolicy()
@@ -179,3 +182,15 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
+
+
+class ScrollablePlainTextEdit(QPlainTextEdit):
+    def __init__(self, parent=None):
+        super().__init__(parent)
+        # 连接 rangeChanged 信号到 slot_scroll_to_bottom 槽
+        self.verticalScrollBar().rangeChanged.connect(self.slot_scroll_to_bottom)
+
+    @pyqtSlot(int, int)
+    def slot_scroll_to_bottom(self, min, max):
+        # 设置滚动条到底部
+        self.verticalScrollBar().setValue(max)
