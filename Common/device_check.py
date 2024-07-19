@@ -7,8 +7,8 @@ class Shell:
     def invoke(cmd, runtime=120):
         try:
             output, errors = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE,
-                                              stderr=subprocess.PIPE, creationflags=subprocess.CREATE_NO_WINDOW).communicate(
-                timeout=runtime)
+                                              stderr=subprocess.PIPE,
+                                              creationflags=subprocess.CREATE_NO_WINDOW).communicate(timeout=runtime)
             o = output.decode("utf-8")
             return o
         except subprocess.TimeoutExpired as e:
@@ -26,6 +26,7 @@ class DeviceCheck:
 
     def device_is_online(self):
         devices = self.shell.invoke("adb devices")
+        # log.info(device_check.device_is_online())
         if self.device_name + "device" in devices.replace('\r', '').replace('\t', '').replace(' ', ''):
             return True
         else:
@@ -36,4 +37,4 @@ class DeviceCheck:
         return boot_res
 
     def logcat(self, log_time):
-        self.shell.invoke("adb -s %s logcat -t %d >> %s" % (self.device_name, log_time, Config.log_path))
+        self.shell.invoke("adb -s %s logcat -t %d >> %s" % (self.device_name, log_time, Config.system_failed_log_path))

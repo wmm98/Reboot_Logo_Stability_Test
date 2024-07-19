@@ -1,6 +1,9 @@
 import binascii
 import serial
 import time
+from Common.debug_log import MyLog
+
+log = MyLog()
 
 
 class SerialD:
@@ -20,26 +23,26 @@ class SerialD:
         try:
             ser = serial.Serial(port, baudrate)
             if (ser.isOpen()):  # 判断串口是否打开
-                print("串口：%s 已经打开！！！" % port)
+                log.info("串口：%s 已经打开！！！" % port)
             else:
                 ser.open()
-                print("串口：%s 打开！！！" % port)
+                log.info("串口：%s 打开！！！" % port)
+                print()
         except Exception as e:
-            print(e)
+            log.error(e)
 
     def logoutSer(self):
         if ser.isOpen():
             ser.close()
-            print("串口： %s 关闭！！！" % port)
+            log.info("串口： %s 关闭！！！" % port)
         else:
-            print("串口： %s 关闭！！！" % port)
+            log.info("串口： %s 关闭！！！" % port)
 
     def send_status_cmd(self):
         num = ser.write(bytes.fromhex("A0 01 05 A6"))
         time.sleep(2)  # sleep() 与 inWaiting() 最好配对使用
         ser.inWaiting()
         data = str(binascii.b2a_hex(ser.read(num)))[2:-1]  # 十六进制显示方法2
-        print(data)
         if "a00100a1" in data:
             return False
         elif "a00101a2" in data:
@@ -47,9 +50,26 @@ class SerialD:
 
     def send_ser_connect_cmd(self):
         ser.write(bytes.fromhex("A0 01 01 A2"))
+        log.info("发送闭合指令")
 
     def send_ser_disconnect_cmd(self):
+        log.info("发送断开指令")
         ser.write(bytes.fromhex("A0 01 00 A1"))
+
+    def confirm_ser_connected(self):
+        limit = 10
+        interval = 1
+        while True:
+            if self.send_status_cmd():
+                log.info("继电器已经闭合")
+                return True
+            else:
+                interval += 1
+            self.send_ser_connect_cmd()
+            if interval >= limit:
+                log.error("继电器无法闭合,请检查!!!")
+                return False
+            time.sleep(1)
 
 
 if __name__ == '__main__':

@@ -44,12 +44,14 @@ class MyLog:
     def info(log_meg):
         set_handler('info')
         logger.info("[INFO " + get_current_time() + "]" + log_meg)
+        print("[INFO " + get_current_time() + "]" + log_meg)
         remove_handler('info')
 
     @staticmethod
     def error(log_meg):
         set_handler('error')
         logger.error("[ERROR " + get_current_time() + "]" + log_meg)
+        print("[ERROR " + get_current_time() + "]" + log_meg)
         remove_handler('error')
 
 

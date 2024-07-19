@@ -9,7 +9,7 @@ class Ui_MainWindow(object):
     options = QtWidgets.QFileDialog.Options()
     options |= QtWidgets.QFileDialog.ReadOnly
     project_path = path_dir = str(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
-    print(project_path)
+    flag_file_path = os.path.join(project_path, "UI", "flag.txt")
     logo_take_path = os.path.join(project_path, "Photo", "Logo", "Logo")
     logo_key_path = os.path.join(project_path, "Photo", "Logo", "Key")
     debug_log_path = os.path.join(project_path, "Log", "Debug", "debug_log.txt")

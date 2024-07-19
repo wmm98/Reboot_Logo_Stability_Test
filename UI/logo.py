@@ -1,8 +1,9 @@
 import subprocess
+import signal
 import sys
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import Qt, QTimer, QProcess
+from PyQt5.QtCore import Qt, QTimer, QProcess, QByteArray
 from tree_widget import Ui_MainWindow
 import os
 import shutil
@@ -22,7 +23,7 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         self.last_position = 0
         # 初始化读取内容读取指针在开始位置
         self.setupUi(self)
-        self.qt_process = QProcess(self)
+        # self.qt_process = QProcess(self)
         self.intiui()
 
     def intiui(self):
@@ -30,13 +31,15 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         self.group.buttonClicked[int].connect(self.on_check_box_clicked)
         self.logo_upload_button.clicked.connect(self.upload_reboot_logo)
         self.show_keying_button.clicked.connect(self.show_keying_image)
-        self.stop_process_button.clicked.connect(self.stop_process)
         self.submit_button.clicked.connect(self.handle_submit)
+        self.stop_process_button.clicked.connect(self.stop_process)
 
     def get_message_box(self, text):
         QMessageBox.warning(self, "错误提示", text)
 
     def handle_submit(self):
+        with open(self.flag_file_path, "w") as f:
+            f.writelines(["state=running"])
         self.stop_process_button.setEnabled(True)
         self.submit_button.setDisabled(True)
         self.submit_button.setText("测试中...")
@@ -51,21 +54,15 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         #     self.get_message_box("文件夹路径：%s不存在" % reboot_logo_path)
         #     return
 
-        # 开始测试、停止测试的文本切换
-        # if self.submit_button.text().strip() == "开始测试":
-        #     self.submit_button.setText("停止测试")
-        # else:
-        #     self.submit_button.setText("开始测试")
-
         # 每次提交先删除失败的照片，避免检错误
         failed_image_path = os.path.join(self.project_path, "Photo", "CameraPhoto", "Key", "Failed.png")
         if os.path.exists(failed_image_path):
             os.remove(failed_image_path)
 
-        # self.start_qt_process(os.path.join(self.project_path, "Run", "bat_run.bat"))
+        self.start_qt_process(os.path.join(self.project_path, "Run", "bat_run.bat"))
 
         # 启动 外部 脚本
-        self.qt_process.start(os.path.join(self.project_path, "Run", "bat_run.bat"))
+        # self.qt_process.start(os.path.join(self.project_path, "Run", "bat_run.bat"))
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_debug_log)
@@ -74,23 +71,27 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         self.timer.start(self.check_interval)  # 启动定时器
 
     def stop_process(self):
-        self.log_edit.clear()
-        self.qt_process.kill()
-        import time
-        time.sleep(3)
+        # self.qt_process.write(QByteArray("1".encode()))
+        # self.qt_process.closeWriteChannel()
+        # self.qt_process.kill()
+        with open(self.flag_file_path, "w") as f:
+            f.writelines(["state=stop"])
         self.stop_process_button.setDisabled(True)
         self.submit_button.setEnabled(True)
         self.submit_button.setText("开始测试")
+        # self.timer.stop()
 
     def start_qt_process(self, file):
-        self.qt_process = QProcess(self)
+        self.qt_process = QProcess()
         # 启动 外部 脚本
         self.qt_process.start(file)
 
     def closeEvent(self, event):
         # 在窗口关闭时停止定时器,关闭任务运行
         # 停止 QProcess 进程
-        self.qt_process.kill()
+        with open(self.flag_file_path, "w") as f:
+            f.writelines(["state=end"])
+        self.timer.stop()
         event.accept()
 
     def copy_file(self, origin, des):
@@ -210,39 +211,16 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
             log_file = self.debug_log_path
             if os.path.exists(log_file):
                 with open(log_file, 'r', encoding='utf-8') as file:
-                    msvcrt.locking(file.fileno(), msvcrt.LK_LOCK, os.path.getsize(log_file))  #
+                    # msvcrt.locking(file.fileno(), msvcrt.LK_LOCK, os.path.getsize(log_file))  #
                     file.seek(self.last_position)
                     new_content = file.read()
-                    self.log_edit.insertPlainText(new_content + "\n")
-                    self.last_position = file.tell()
-                    msvcrt.locking(file.fileno(), msvcrt.LK_UNLCK, os.path.getsize(log_file))  # 解锁
+                    if new_content:
+                        self.log_edit.insertPlainText(new_content + "\n")
+                        self.last_position = file.tell()
+                    # msvcrt.locking(file.fileno(), msvcrt.LK_UNLCK, os.path.getsize(log_file))  # 解锁
         except Exception as e:
             pass
         #     print(f"读取日志文件时出错: {e}")
-
-    def write_to_log(self, text):
-        try:
-            log_file = self.debug_log_path
-            if os.path.exists(log_file):
-                with open(log_file, 'r', encoding='utf-8') as file:
-                    msvcrt.locking(file.fileno(), msvcrt.LK_LOCK, os.path.getsize(log_file))  #
-                    file.seek(self.last_position)
-                    new_content = file.read()
-                    print(new_content)
-                    cursor = self.log_edit.textCursor()
-
-                    cursor.movePosition(cursor.End)
-                    print("============")
-                    cursor.insertText(text + '\n')
-                    print("============")
-                    self.log_edit.setTextCursor(cursor)
-                    print("============")
-                    self.log_edit.ensureCursorVisible()
-                    print("============")
-                    self.last_position = file.tell()
-                    msvcrt.locking(file.fileno(), msvcrt.LK_UNLCK, os.path.getsize(log_file))  # 解锁
-        except Exception as e:
-            print(e)
 
 
 if __name__ == '__main__':

@@ -1,9 +1,10 @@
 import time
 from Common import config, image_analysis, camera_operate, keying, m_serial, adb_timer, debug_log
 import os
+from multiprocessing import Process
 from Common.device_check import DeviceCheck
-
 import sys
+import threading
 
 log = debug_log.MyLog()
 
@@ -55,60 +56,80 @@ if __name__ == '__main__':
     if os.path.exists(failed_img_path):
         os.remove(failed_img_path)
 
+    log.info("****************开始测试*****************")
+
+    exit_event = threading.Event()
+
+
+    def check_txt_for_character(file_path):
+        while not exit_event.is_set():
+            if os.path.exists(file_path):
+                with open(file_path, 'r') as file:
+                    content = file.read()
+                    # log.info(content)
+                    if "state=end" in content:
+                        exit_event.set()
+                    elif "state=stop" in content:
+                        # log.info("停止测试")
+                        exit_event.set()
+                    else:
+                        pass
+                        # log.info("继续执行任务")
+                time.sleep(3)  # 每秒检查一次
+
+
+    # 文件路径和要检查的字符
+    file_path = conf.flag_file_path
+
+    # 创建并启动文件检查线程
+    thread = threading.Thread(target=check_txt_for_character, args=(file_path,))
+    thread.start()
+
     flag = 0
-    # log.info("====================================")
-    # time.sleep(3)
-    # log.info("==================================")
-
-    while True:
+    log.info("*************开关卡logo测试开始****************")
+    while not exit_event.is_set():
         flag += 1
-        log.info("********************%d******************************" % flag)
-        # print(device_check.device_is_online())
-        # log.info()
-        # print("********************%d******************************" % flag)
+        # 上下电启动
+        t_ser.loginSer("COM59")
+        t_ser.send_ser_disconnect_cmd()
         time.sleep(1)
+        t_ser.send_ser_connect_cmd()
+        if not t_ser.confirm_ser_connected():
+            # 不执行
+            exit_event.set()
+        log.info("正在开机，请等...")
+        if check_adb_online_with_thread("3TP0110TB20222800005"):
+            if check_boot_complete_with_thread("3TP0110TB20222800005", timeout=120):
+                log.info("设备完全启动")
+            else:
+                log.info("设备无法完全启动, 请检查!!!")
 
-    # while True:
-    #     flag += 1
-    #     # 上下电启动
-    #     t_ser.loginSer("COM56")
-    #     t_ser.send_ser_disconnect_cmd()
-    #     time.sleep(1)
-    #     t_ser.send_ser_connect_cmd()
-    #
-    #     if check_adb_online_with_thread("3TP0110TB20222800005"):
-    #         if check_boot_complete_with_thread("3TP0110TB20222800005", timeout=120):
-    #             print("设备完全启动")
-    #         else:
-    #             print("设备无法完全启动， 请检查！！！！")
-    #
-    #         # 拍照
-    #         time.sleep(60)
-    #         origin_camera_path = os.path.join(conf.camera_origin_img_path, "Origin.png")
-    #         if os.path.exists(origin_camera_path):
-    #             os.remove(origin_camera_path)
-    #         camera.take_photo(origin_camera_path)
-    #         # 抠图
-    #         camera_key_img_path = os.path.join(conf.camera_key_img_path, "Key3.png")
-    #         if os.path.exists(camera_key_img_path):
-    #             os.remove(camera_key_img_path)
-    #         key_ing.save_key_photo(origin_camera_path, camera_key_img_path)
-    #
-    #         # 对比抠图/原图 origin_camera_path, origin_logo_logo_img
-    #         percent = analysis.get_similarity(origin_logo_key_img, camera_key_img_path)
-    #         if percent > 95:
-    #             os.rename(camera_key_img_path, failed_img_path)
-    #             # 捕捉前半个钟的log
-    #             device_check.logcat(60)
-    #             break
-    #         t_ser.logoutSer()
-    #     else:
-    #         t_ser.loginSer("COM56")
-    #         t_ser.send_ser_connect_cmd()
-    #         time.sleep(1)
-    #
-    #         if check_adb_online_with_thread("3TP0110TB20222800005"):
-    #             print("设备adb无法起来无法启动")
-    #             # 比对黑暗图片
-    #             pass
-    #     time.sleep(5)
+        # 拍照
+        time.sleep(60)
+        origin_camera_path = os.path.join(conf.camera_origin_img_path, "Origin.png")
+        if os.path.exists(origin_camera_path):
+            os.remove(origin_camera_path)
+        camera.take_photo(origin_camera_path)
+        log.info("拍照完成")
+        # 抠图
+        log.info("抠图中， 请等待")
+        camera_key_img_path = os.path.join(conf.camera_key_img_path, "Key3.png")
+        if os.path.exists(camera_key_img_path):
+            os.remove(camera_key_img_path)
+        key_ing.save_key_photo(origin_camera_path, camera_key_img_path)
+        log.info("抠图完成")
+        # 对比抠图/原图 origin_camera_path, origin_logo_logo_img
+        percent = analysis.get_similarity(origin_logo_key_img, camera_key_img_path)
+        log.info("样本logo和测试logo相似度为%s%%" % str(percent))
+        if percent > 95:
+            os.rename(camera_key_img_path, failed_img_path)
+            log.info("当前测试认为复现卡logo, 请检查设备!!!")
+            # 捕捉前半个钟的log
+            device_check.logcat(60)
+            exit_event.set()
+        t_ser.logoutSer()
+        log.info("*******************压测完成%d次********************" % flag)
+        time.sleep(3)
+
+    thread.join()
+    log.info("停止压测.")
