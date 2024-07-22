@@ -35,7 +35,7 @@ class MyLog:
     log_file = Config.debug_log_path
     logger.setLevel(LEVELS.get(level, logging.NOTSET))
 
-    create_file(log_file)
+    # create_file(log_file)
     date = '%Y-%m-%d %H:%M:%S'
 
     handler = logging.FileHandler(log_file, encoding='utf-8')

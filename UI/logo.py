@@ -38,8 +38,8 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         QMessageBox.warning(self, "错误提示", text)
 
     def handle_submit(self):
-        with open(self.flag_file_path, "w") as f:
-            f.writelines(["state=running"])
+        with open(self.debug_log_path, "w") as f:
+            f.close()
         self.stop_process_button.setEnabled(True)
         self.submit_button.setDisabled(True)
         self.submit_button.setText("测试中...")
@@ -60,6 +60,7 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
             os.remove(failed_image_path)
 
         self.start_qt_process(os.path.join(self.project_path, "Run", "bat_run.bat"))
+        # self.qt_process.startDetached(os.path.join(self.project_path, "Run", "bat_run.bat"))
 
         # 启动 外部 脚本
         # self.qt_process.start(os.path.join(self.project_path, "Run", "bat_run.bat"))
@@ -73,18 +74,31 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
     def stop_process(self):
         # self.qt_process.write(QByteArray("1".encode()))
         # self.qt_process.closeWriteChannel()
+        # print(self.qt_process.processId())
+        self.log_edit.insertPlainText("进程号%s" % self.qt_process.processId() + "\n")
+        res = self.qt_process.startDetached("taskkill /PID %s /F /T" % str(self.qt_process.processId()))
+        if res:
+            self.log_edit.insertPlainText("进程杀掉了" + "\n")
+        else:
+            self.log_edit.insertPlainText("进程没杀掉了" + "\n")
+        # 重新开始，文件位置回到初始
+        self.last_position = 0
         # self.qt_process.kill()
-        with open(self.flag_file_path, "w") as f:
-            f.writelines(["state=stop"])
+        # self.qt_process.startDetached("taskkill -t  -f /pid%d" % self.qt_process.processId())
+        # with open(self.flag_file_path, "w") as f:
+        #     f.writelines(["state=stop"])
         self.stop_process_button.setDisabled(True)
         self.submit_button.setEnabled(True)
         self.submit_button.setText("开始测试")
-        # self.timer.stop()
+        self.timer.stop()
+
 
     def start_qt_process(self, file):
         self.qt_process = QProcess()
         # 启动 外部 脚本
         self.qt_process.start(file)
+
+        # self.qt_process.startDetached(file)
 
     def closeEvent(self, event):
         # 在窗口关闭时停止定时器,关闭任务运行
