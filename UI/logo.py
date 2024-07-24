@@ -14,6 +14,9 @@ import serial.tools.list_ports
 import msvcrt
 from PIL import Image
 import rembg
+from PyQt5.QtCore import pyqtSlot, QUrl, QFileInfo
+from PyQt5.QtGui import QTextDocument, QTextCursor, QFont, QTextFrameFormat, QTextImageFormat
+import base64
 
 
 class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -21,23 +24,35 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
     def __init__(self):
         super(UIDisplay, self).__init__()
         self.last_position = 0
+        self.last_modify_time = 0
         # 初始化读取内容读取指针在开始位置
         self.setupUi(self)
-        # self.qt_process = QProcess(self)
         self.intiui()
 
     def intiui(self):
-        self.select_devices_name()
-        self.group.buttonClicked[int].connect(self.on_check_box_clicked)
-        self.logo_upload_button.clicked.connect(self.upload_reboot_logo)
-        self.show_keying_button.clicked.connect(self.show_keying_image)
-        self.submit_button.clicked.connect(self.handle_submit)
-        self.stop_process_button.clicked.connect(self.stop_process)
+        try:
+            self.select_devices_name()
+            self.group.buttonClicked[int].connect(self.on_check_box_clicked)
+            self.logo_upload_button.clicked.connect(self.upload_reboot_logo)
+            self.show_keying_button.clicked.connect(self.show_keying_image)
+            self.submit_button.clicked.connect(self.handle_submit)
+            self.stop_process_button.clicked.connect(self.stop_process)
+
+            # 初始化图片cursor
+            # self.add_logo_image()
+            # self.get_file_modification_time()
+            self.cursor = QTextCursor(self.document)
+        except Exception as e:
+            print(e)
 
     def get_message_box(self, text):
         QMessageBox.warning(self, "错误提示", text)
 
     def handle_submit(self):
+        # 先删除原来存在的key图片
+        if os.path.exists(self.camera_key_path):
+            os.remove(self.camera_key_path)
+        # 初始化log文件
         with open(self.debug_log_path, "w") as f:
             f.close()
         self.stop_process_button.setEnabled(True)
@@ -55,56 +70,65 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         #     return
 
         # 每次提交先删除失败的照片，避免检错误
-        failed_image_path = os.path.join(self.project_path, "Photo", "CameraPhoto", "Key", "Failed.png")
-        if os.path.exists(failed_image_path):
-            os.remove(failed_image_path)
+        if os.path.exists(self.failed_image_key_path):
+            os.remove(self.failed_image_key_path)
 
-        self.start_qt_process(os.path.join(self.project_path, "Run", "bat_run.bat"))
-        # self.qt_process.startDetached(os.path.join(self.project_path, "Run", "bat_run.bat"))
+        self.start_qt_process(self.run_bat_path)
 
-        # 启动 外部 脚本
-        # self.qt_process.start(os.path.join(self.project_path, "Run", "bat_run.bat"))
+        self.file_timer = QTimer(self)
+        self.file_timer.timeout.connect(self.check_image_modification)
 
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_debug_log)
 
         self.check_interval = 1000  # 定时器间隔，单位毫秒
         self.timer.start(self.check_interval)  # 启动定时器
+        self.file_timer.start(self.check_interval)
+
+    def get_file_modification_time(self, file_path):
+        """获取文件的最后修改时间"""
+        file_info = QFileInfo(file_path)
+        last_modify = file_info.lastModified()
+        return last_modify
+
+    def check_image_modification(self):
+        """检查图片文件是否有修改"""
+        if os.path.exists(self.camera_key_path):
+            print(self.camera_key_path)
+            current_mod_time = self.get_file_modification_time(self.camera_key_path)
+            print(current_mod_time)
+            if current_mod_time != self.last_modify_time:
+                # self.text_edit.insertPlainText("图片时间已经修改" + current_mod_time.toString(Qt.TextDate))
+                # print(f"图片文件已更改: {current_mod_time.toString()}")
+                self.last_modify_time = current_mod_time  # 更新为新的修改时间
+                self.add_logo_image()
 
     def stop_process(self):
-        # self.qt_process.write(QByteArray("1".encode()))
-        # self.qt_process.closeWriteChannel()
-        # print(self.qt_process.processId())
-        self.log_edit.insertPlainText("进程号%s" % self.qt_process.processId() + "\n")
-        res = self.qt_process.startDetached("taskkill /PID %s /F /T" % str(self.qt_process.processId()))
-        if res:
-            self.log_edit.insertPlainText("进程杀掉了" + "\n")
-        else:
-            self.log_edit.insertPlainText("进程没杀掉了" + "\n")
-        # 重新开始，文件位置回到初始
+        # 文件位置初始化
+        self.force_task_kill()
         self.last_position = 0
-        # self.qt_process.kill()
-        # self.qt_process.startDetached("taskkill -t  -f /pid%d" % self.qt_process.processId())
-        # with open(self.flag_file_path, "w") as f:
-        #     f.writelines(["state=stop"])
         self.stop_process_button.setDisabled(True)
         self.submit_button.setEnabled(True)
         self.submit_button.setText("开始测试")
         self.timer.stop()
-
+        self.file_timer.stop()
 
     def start_qt_process(self, file):
         self.qt_process = QProcess()
         # 启动 外部 脚本
         self.qt_process.start(file)
 
-        # self.qt_process.startDetached(file)
+    def force_task_kill(self):
+        res = self.qt_process.startDetached("taskkill /PID %s /F /T" % str(self.qt_process.processId()))
+        if res:
+            self.text_edit.insertPlainText("任务已经结束" + "\n")
+        else:
+            self.text_edit.insertPlainText("任务还没结束" + "\n")
 
     def closeEvent(self, event):
         # 在窗口关闭时停止定时器,关闭任务运行
         # 停止 QProcess 进程
-        with open(self.flag_file_path, "w") as f:
-            f.writelines(["state=end"])
+        self.force_task_kill()
         self.timer.stop()
         event.accept()
 
@@ -196,7 +220,7 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def show_keying_image(self):
         self.key_photo()
-        pixmap = QPixmap(os.path.join(self.logo_key_path, "Failed.png"))
+        pixmap = QPixmap(self.logo_key_path)
         if not pixmap.isNull():
             scaled_pixmap = pixmap.scaled(439, 311)
             self.exp_image_label.setPixmap(scaled_pixmap)
@@ -206,8 +230,7 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         if len(original_path) == 0:
             self.get_message_box("请上传图片再抠图")
             return
-        new_path = os.path.join(self.logo_key_path, "Failed.png")
-        self.save_key_photo(original_path, new_path)
+        self.save_key_photo(original_path, self.logo_key_path)
 
     def save_key_photo(self, orig_path, new_path):
         img = Image.open(orig_path)
@@ -215,7 +238,7 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         img_bg_remove.save(new_path)
 
     def show_failed_image(self):
-        pixmap = QPixmap(os.path.join(self.logo_key_path, "Failed.png"))
+        pixmap = QPixmap(self.failed_image_key_path)
         if not pixmap.isNull():
             scaled_pixmap = pixmap.scaled(429, 311)
             self.test_image_label.setPixmap(scaled_pixmap)
@@ -225,16 +248,33 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
             log_file = self.debug_log_path
             if os.path.exists(log_file):
                 with open(log_file, 'r', encoding='utf-8') as file:
-                    # msvcrt.locking(file.fileno(), msvcrt.LK_LOCK, os.path.getsize(log_file))  #
                     file.seek(self.last_position)
                     new_content = file.read()
                     if new_content:
-                        self.log_edit.insertPlainText(new_content + "\n")
+                        self.text_edit.insertPlainText(new_content + "\n")
                         self.last_position = file.tell()
-                    # msvcrt.locking(file.fileno(), msvcrt.LK_UNLCK, os.path.getsize(log_file))  # 解锁
         except Exception as e:
-            pass
-        #     print(f"读取日志文件时出错: {e}")
+            self.log_edit.insertPlainText(str(e) + "\n")
+
+    def add_logo_image(self):
+        # self.cursor = QTextCursor(self.document)
+        # 将图片路径转为 QUrl
+        # 创建 QTextImageFormat 对象
+        self.image_edit.clear()
+        image_format = QTextImageFormat()
+        image_url = QUrl.fromLocalFile(self.camera_key_path)
+        # 添加图片资源到 QTextDocument
+        self.document.addResource(QTextDocument.ImageResource, image_url, image_url)
+        # 设置图片格式的 ID
+        image_format.setName(image_url.toString())
+        # 设置图片的大小
+        image_format.setWidth(self.image_width)
+        image_format.setHeight(self.image_height)
+
+        # 插入图片到 QTextDocument
+        self.image_edit.insertPlainText("\n")
+        self.cursor.insertImage(image_format)
+        self.image_edit.insertPlainText("\n")
 
 
 if __name__ == '__main__':

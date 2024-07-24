@@ -1,18 +1,21 @@
 import os
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QHBoxLayout, QCheckBox, QLineEdit, QComboBox, QButtonGroup, QWidget, QSplitter, \
-    QPlainTextEdit
-from PyQt5.QtCore import pyqtSlot
+    QPlainTextEdit, QTextEdit, QGraphicsView, QGraphicsScene, QGraphicsRectItem
+from PyQt5.QtCore import pyqtSlot, QUrl, QRect, Qt
+from PyQt5.QtGui import QTextDocument, QTextCursor, QFont, QTextFrameFormat, QTextImageFormat
 
 
 class Ui_MainWindow(object):
     options = QtWidgets.QFileDialog.Options()
     options |= QtWidgets.QFileDialog.ReadOnly
     project_path = path_dir = str(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
-    flag_file_path = os.path.join(project_path, "UI", "flag.txt")
-    logo_take_path = os.path.join(project_path, "Photo", "Logo", "Logo")
-    logo_key_path = os.path.join(project_path, "Photo", "Logo", "Key")
+    logo_take_path = os.path.join(project_path, "Photo", "Logo", "Logo", "Logo.png")
+    logo_key_path = os.path.join(project_path, "Photo", "Logo", "Key", "Key.png")
+    camera_key_path = os.path.join(project_path, "Photo", "CameraPhoto", "Key", "Key.png")
     debug_log_path = os.path.join(project_path, "Log", "Debug", "debug_log.txt")
+    run_bat_path = os.path.join(project_path, "Run", "bat_run.bat")
+    failed_image_key_path = os.path.join(project_path, "Photo", "CameraPhoto", "Key", "Failed.png")
     if os.path.exists(debug_log_path):
         os.remove(debug_log_path)
 
@@ -128,16 +131,23 @@ class Ui_MainWindow(object):
         # 右侧部件
         right_widget = QWidget()
         self.verticalLayout_right = QtWidgets.QVBoxLayout(right_widget)
-        # self.log_edit = QPlainTextEdit()
-        self.log_edit = ScrollablePlainTextEdit(self)
-        self.log_edit.setReadOnly(True)
-        self.log_edit.setUndoRedoEnabled(False)
-        # self.log_edit.setFocusPolicy()
-        # self.text_edit.setTextInteractionFlags(Qt.TextSelectableByMouse)
-        # self.log_edit.se
-        self.verticalLayout_right.addWidget(self.log_edit)
+        # self.log_edit = ScrollablePlainTextEdit(self)
+        # self.log_edit.setReadOnly(True)
+        # self.verticalLayout_right.addWidget(self.log_edit)
 
-        #
+        self.text_edit = ScrollablePlainTextEdit()
+        self.text_edit.setReadOnly(True)
+        self.verticalLayout_right.addWidget(self.text_edit)
+
+
+        self.image_edit = ScrollablePlainTextEdit()
+        width = self.image_edit.viewport().width()
+        height = self.image_edit.viewport().height()
+        self.image_width = width / 2
+        self.image_height = height / 3
+        self.document = self.image_edit.document()
+        self.verticalLayout_right.addWidget(self.image_edit)
+
         # self.verticalLayout_right.addWidget(QCheckBox("控件3"))  # 右侧列的控件1
         # self.verticalLayout_right.addWidget(QCheckBox("控件4"))  # 右侧列的控件2
         # self.verticalLayout_right.addWidget(QCheckBox("控件5"))  # 右侧列的控件2
@@ -184,7 +194,7 @@ class Ui_MainWindow(object):
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
 
 
-class ScrollablePlainTextEdit(QPlainTextEdit):
+class ScrollablePlainTextEdit(QTextEdit):
     def __init__(self, parent=None):
         super().__init__(parent)
         # 连接 rangeChanged 信号到 slot_scroll_to_bottom 槽

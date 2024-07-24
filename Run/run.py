@@ -49,7 +49,7 @@ if __name__ == '__main__':
     # 先对设备的时间进行修改，使用网络时间，方便看log
     # 图片处理相关
     origin_logo_logo_img = os.path.join(conf.logo_logo_path, "Logo1.png")
-    origin_logo_key_img = os.path.join(conf.logo_key_path, "Key3.png")
+    origin_logo_key_img = os.path.join(conf.logo_key_path, "Key.png")
     # 需要在前端先删除存留的失败照片,调试的时候先在这里删除
     failed_img_path = os.path.join(conf.camera_key_img_path, "Failed.png")
     if os.path.exists(failed_img_path):
@@ -78,7 +78,7 @@ if __name__ == '__main__':
                 log.info("设备无法完全启动, 请检查!!!")
 
         # 拍照
-        # time.sleep(60)
+        time.sleep(60)
         origin_camera_path = os.path.join(conf.camera_origin_img_path, "Origin.png")
         if os.path.exists(origin_camera_path):
             os.remove(origin_camera_path)
@@ -86,7 +86,7 @@ if __name__ == '__main__':
         log.info("拍照完成")
         # 抠图
         log.info("抠图中， 请等待")
-        camera_key_img_path = os.path.join(conf.camera_key_img_path, "Key3.png")
+        camera_key_img_path = os.path.join(conf.camera_key_img_path, "Key.png")
         if os.path.exists(camera_key_img_path):
             os.remove(camera_key_img_path)
         key_ing.save_key_photo(origin_camera_path, camera_key_img_path)
