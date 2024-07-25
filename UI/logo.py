@@ -28,7 +28,10 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
     def intiui(self):
         self.select_devices_name()
         self.list_COM()
-        # self.group.buttonClicked[int].connect(self.on_check_box_clicked)
+        self.is_adapter.clicked.connect(self.adapter_checkbox_change)
+        self.is_battery.clicked.connect(self.battery_checkbox_change)
+        self.is_power_button.clicked.connect(self.power_button_checkbox_change)
+        self.is_usb.clicked.connect(self.usb_checkbox_change)
         self.logo_upload_button.clicked.connect(self.upload_reboot_logo)
         self.show_keying_button.clicked.connect(self.show_keying_image)
         self.submit_button.clicked.connect(self.handle_submit)
@@ -81,6 +84,45 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         self.check_interval = 1000  # 定时器间隔，单位毫秒
         self.timer.start(self.check_interval)  # 启动定时器
         self.file_timer.start(self.check_interval)
+
+    def adapter_checkbox_change(self):
+        if self.adapter_config.isEnabled():
+            self.adapter_config.setDisabled(True)
+            self.adapter_config.clear()
+        else:
+            self.adapter_config.setEnabled(True)
+            for line in self.get_COM_config():
+                self.adapter_config.addItem(line)
+
+    def power_button_checkbox_change(self):
+        if self.power_button_config.isEnabled():
+            self.power_button_config.setDisabled(True)
+            self.power_button_config.clear()
+        else:
+            self.power_button_config.setEnabled(True)
+            for line in self.get_COM_config():
+                self.power_button_config.addItem(line)
+
+    def battery_checkbox_change(self):
+        if self.battery_config.isEnabled():
+            self.battery_config.setDisabled(True)
+            self.battery_config.clear()
+        else:
+            self.battery_config.setEnabled(True)
+            for line in self.get_COM_config():
+                self.battery_config.addItem(line)
+
+    def usb_checkbox_change(self):
+        if self.usb_config.isEnabled():
+            self.usb_config.setDisabled(True)
+            self.usb_config.clear()
+        else:
+            self.usb_config.setEnabled(True)
+            for line in self.get_COM_config():
+                self.usb_config.addItem(line)
+
+    def get_COM_config(self):
+        return ["1路", "2路", "3路", "4路"]
 
     def save_config(self, file_name):
         config = configparser.ConfigParser()
