@@ -18,11 +18,6 @@ class Ui_MainWindow(object):
     if os.path.exists(debug_log_path):
         os.remove(debug_log_path)
 
-    # yaml_file_path = os.path.join(project_path, "Conf", "test_data.yaml")
-    # # 加载 YAML 文件
-    # with open(yaml_file_path, 'r', encoding="utf-8") as file:
-    #     data = yaml.safe_load(file)
-
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(1100, 600)
@@ -53,6 +48,22 @@ class Ui_MainWindow(object):
         # 间隔
         self.verticalLayout_left.addWidget(QtWidgets.QLabel())
 
+        # 继电器种类
+        layout_relay_type = QHBoxLayout()
+        self.relay_type = QtWidgets.QLabel("继电器种类:")
+        self.is_1_relay = QCheckBox("1路继电器")
+        self.is_4_relay = QCheckBox("4路继电器")
+        layout_relay_type.addWidget(self.relay_type)
+        layout_relay_type.addWidget(self.is_1_relay)
+        layout_relay_type.addWidget(self.is_4_relay)
+        layout_relay_type.addStretch(1)
+        self.verticalLayout_left.addLayout(layout_relay_type)
+        self.relay_group = QButtonGroup()
+        self.relay_group.addButton(self.is_1_relay, id=1)
+        self.relay_group.addButton(self.is_4_relay, id=2)
+        # 间隔
+        self.verticalLayout_left.addWidget(QtWidgets.QLabel())
+
         layout_device_control = QHBoxLayout()
         self.boot_way = QtWidgets.QLabel("接线方式:")
         self.is_adapter = QCheckBox("适配器")
@@ -68,6 +79,7 @@ class Ui_MainWindow(object):
         layout_device_control.addStretch(1)
         # 将水平布局放入垂直布局
         self.verticalLayout_left.addLayout(layout_device_control)
+
         # 间隔
         self.verticalLayout_left.addWidget(QtWidgets.QLabel())
 
@@ -95,10 +107,13 @@ class Ui_MainWindow(object):
         self.usb_label = QtWidgets.QLabel("USB:")
         self.usb_config = QComboBox()
         self.usb_config.setDisabled(True)
+        self.config_tips = QtWidgets.QLabel("接线提示:电池接常闭端(COM,NC）,其他接常开端(COM,NO)")
+        self.config_tips.setStyleSheet("color: blue;")
         layout_COM_config.addWidget(self.usb_label)
         layout_COM_config.addWidget(self.usb_config)
         layout_COM_config.addStretch(1)
         self.verticalLayout_left.addLayout(layout_COM_config)
+        self.verticalLayout_left.addWidget(self.config_tips)
         # 间隔
         self.verticalLayout_left.addWidget(QtWidgets.QLabel())
 
@@ -156,12 +171,6 @@ class Ui_MainWindow(object):
         self.document = self.image_edit.document()
         self.verticalLayout_right.addWidget(self.image_edit)
 
-        # self.verticalLayout_right.addWidget(QCheckBox("控件3"))  # 右侧列的控件1
-        # self.verticalLayout_right.addWidget(QCheckBox("控件4"))  # 右侧列的控件2
-        # self.verticalLayout_right.addWidget(QCheckBox("控件5"))  # 右侧列的控件2
-        # self.verticalLayout_right.addWidget(QCheckBox("控件6"))  # 右侧列的控件2
-        # self.edit = QLineEdit()
-        # self.verticalLayout_right.addWidget(self.edit)  # 右侧列的控件2
         self.verticalLayout_left.addStretch(1)
         self.verticalLayout_left.setSpacing(10)  # 设置左侧垂直布局的间距为10像素
         self.verticalLayout_right.setSpacing(10)  # 设置右侧垂直布局的间距为10像素

@@ -52,19 +52,38 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         # 初始化log文件
         with open(self.debug_log_path, "w") as f:
             f.close()
-        self.stop_process_button.setEnabled(True)
-        self.submit_button.setDisabled(True)
-        self.submit_button.setText("测试中...")
         # 文本框非空检查
-        # if len(self.logo_path_edit.text()) == 0:
-        #     self.get_message_box("请上传开机logo！！！")
-        #     return
-        #
+        if not self.is_1_relay.isChecked() and not self.is_4_relay.isChecked():
+            self.get_message_box("请选择继电器种类！！！")
+            return
+
+        if not self.is_adapter.isChecked() and not self.is_power_button.isChecked() and not self.is_battery.isChecked() and not self.is_usb.isChecked():
+            self.get_message_box("请选择接线方式！！！")
+            return
+
+        # 继电器路数不能相同
+        config_list = []
+        if self.adapter_config.isEnabled():
+            config_list.append(self.adapter_config.currentText())
+        if self.power_button_config.isEnabled():
+            config_list.append(self.power_button_config.currentText())
+        if self.battery_config.isEnabled():
+            config_list.append(self.battery_config.currentText())
+        if self. usb_config.isEnabled():
+            config_list.append(self.usb_config.currentText())
+        if len(config_list) != len(set(config_list)):
+            self.get_message_box("接线配置有相同，请检查！！！")
+            return
+
+        if len(self.logo_path_edit.text()) == 0:
+            self.get_message_box("请上传开机logo！！！")
+            return
+
         # # 检查文件是否存在
-        # reboot_logo_path = self.logo_path_edit.text().strip()
-        # if not os.path.exists(reboot_logo_path):
-        #     self.get_message_box("文件夹路径：%s不存在" % reboot_logo_path)
-        #     return
+        reboot_logo_path = self.logo_path_edit.text().strip()
+        if not os.path.exists(reboot_logo_path):
+            self.get_message_box("文件夹路径：%s不存在" % reboot_logo_path)
+            return
 
         # 检查完保存配置
         self.save_config(self.config_file_path)
@@ -84,6 +103,10 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         self.check_interval = 1000  # 定时器间隔，单位毫秒
         self.timer.start(self.check_interval)  # 启动定时器
         self.file_timer.start(self.check_interval)
+
+        self.stop_process_button.setEnabled(True)
+        self.submit_button.setDisabled(True)
+        self.submit_button.setText("测试中...")
 
     def adapter_checkbox_change(self):
         if self.adapter_config.isEnabled():
@@ -235,6 +258,9 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
             print(str(e))
 
     def show_keying_image(self):
+        if len(self.logo_path_edit.text()) == 0:
+            self.get_message_box("请上传logo！！！")
+            return
         self.key_photo()
         pixmap = QPixmap(self.logo_key_path)
         if not pixmap.isNull():
