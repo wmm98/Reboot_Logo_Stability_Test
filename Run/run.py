@@ -59,7 +59,7 @@ if __name__ == '__main__':
 
     flag = 0
     log.info("*************开关卡logo测试开始****************")
-    # interval = [i for i in range(1, 100)]
+    interval = [i*4 for i in range(1, 100)]
     while True:
         flag += 1
         # 上下电启动
@@ -77,7 +77,7 @@ if __name__ == '__main__':
             # exit_event.set()
             break
         log.info("正在开机，请等...")
-        time.sleep(60)
+        time.sleep(interval[flag])
         # if check_adb_online_with_thread("3TP0110TB20222800005"):
         #     if check_boot_complete_with_thread("3TP0110TB20222800005", timeout=120):
         #         log.info("设备完全启动")
@@ -105,7 +105,7 @@ if __name__ == '__main__':
         distance = analysis.get_images_distance(origin_logo_key_img, camera_key_img_path)
         # if distance:
         log.info("两张图片之间的距离值为： %s" % str(distance))
-        threshold = 15  # 可以根据需要调整阈值
+        threshold = 8  # 可以根据需要调整阈值
         if distance > threshold:
             log.info("当前测试认为复现卡logo, 请检查设备!!!")
             # break

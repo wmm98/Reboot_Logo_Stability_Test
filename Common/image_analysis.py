@@ -3,6 +3,10 @@ from skimage.metrics import structural_similarity as ssim
 from PIL import Image
 import imagehash
 
+"""
+目前使用感知哈希算法比对两张图片的距离
+"""
+
 
 class Analysis:
     def __init__(self):
@@ -47,15 +51,8 @@ class Analysis:
 
         # 计算 SSIM
         ssim_index, _ = ssim(gray_image1, gray_image2, full=True)
-
         # 将 SSIM 转换为相似度百分比
         similarity_percentage = ssim_index * 100
-        print(type(similarity_percentage))
-        # 打印相似度百分比
-        print(f"图片相似度百分比: {similarity_percentage:.2f}%")
-
-        # cv2.waitKey(0)
-        # cv2.destroyAllWindows()
         return float(similarity_percentage)
 
     def calculate_phash(self, image_path):
@@ -75,24 +72,38 @@ class Analysis:
         # 计算哈希值之间的汉明距离
         hash_distance = hash1 - hash2
 
-        # 返回相似度（汉明距离越小，图片越相似）
+        # 返回相似度（距离越小，图片越相似）
         return hash_distance
 
     def get_images_distance(self, image_path1, image_path2):
-
-        # 示例图片路径
-        # image_path1 = 'Key3.png'
-        # image_path2 = 'Logo.png'
-
         # 比较两张图片
         distance = self.compare_images(image_path1, image_path2)
-        print(f"Image hash distance: {distance}")
-
         # 判断图片是否相似（设定一个阈值）
-        threshold = 5  # 可以根据需要调整阈值
-        if distance < threshold:
-            print("Images are similar")
-        else:
-            print("Images are not similar")
+        # threshold = 5  # 可以根据需要调整阈值
+        # if distance < threshold:
+        #     print("Images are similar")
+        # else:
+        #     print("Images are not similar")
 
         return distance
+
+    # def calculate_dhash(self, image_path):
+    #     """
+    #     计算图像的差异哈希值
+    #     """
+    #     img = Image.open(image_path)
+    #     # 使用 imagehash 库计算差异哈希值
+    #     return imagehash.dhash(img)
+    #
+    # def compare_images(self, image_path1, image_path2):
+    #     """
+    #     比较两张图片的差异哈希值
+    #     """
+    #     hash1 = self.calculate_dhash(image_path1)
+    #     hash2 = self.calculate_dhash(image_path2)
+    #
+    #     # 计算哈希值之间的汉明距离
+    #     hash_distance = hash1 - hash2
+    #
+    #     # 返回相似度（汉明距离越小，图片越相似）
+    #     return hash_distance

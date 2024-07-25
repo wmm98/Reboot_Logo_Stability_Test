@@ -1,22 +1,18 @@
 import subprocess
-import signal
 import sys
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import Qt, QTimer, QProcess, QByteArray
+from PyQt5.QtCore import QTimer, QProcess
 from tree_widget import Ui_MainWindow
 import os
 import shutil
-import threading
-from datetime import datetime
 from PyQt5.QtGui import QPixmap
 import serial.tools.list_ports
-import msvcrt
 from PIL import Image
 import rembg
-from PyQt5.QtCore import pyqtSlot, QUrl, QFileInfo
-from PyQt5.QtGui import QTextDocument, QTextCursor, QFont, QTextFrameFormat, QTextImageFormat
-import base64
+from PyQt5.QtCore import QUrl, QFileInfo
+from PyQt5.QtGui import QTextDocument, QTextCursor, QTextImageFormat
+import configparser
 
 
 class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
@@ -31,7 +27,8 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def intiui(self):
         self.select_devices_name()
-        self.group.buttonClicked[int].connect(self.on_check_box_clicked)
+        self.list_COM()
+        # self.group.buttonClicked[int].connect(self.on_check_box_clicked)
         self.logo_upload_button.clicked.connect(self.upload_reboot_logo)
         self.show_keying_button.clicked.connect(self.show_keying_image)
         self.submit_button.clicked.connect(self.handle_submit)
@@ -66,6 +63,9 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         #     self.get_message_box("文件夹路径：%s不存在" % reboot_logo_path)
         #     return
 
+        # 检查完保存配置
+        self.save_config(self.config_file_path)
+
         # 每次提交先删除失败的照片，避免检错误
         if os.path.exists(self.failed_image_key_path):
             os.remove(self.failed_image_key_path)
@@ -81,6 +81,14 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         self.check_interval = 1000  # 定时器间隔，单位毫秒
         self.timer.start(self.check_interval)  # 启动定时器
         self.file_timer.start(self.check_interval)
+
+    def save_config(self, file_name):
+        config = configparser.ConfigParser()
+        section = "Config"
+        config.add_section(section)
+        config[section]['test'] = "1"
+        with open(file_name, 'w') as configfile:
+            config.write(configfile)
 
     def get_file_modification_time(self, file_path):
         """获取文件的最后修改时间"""
@@ -151,42 +159,10 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         if file_name:
             self.logo_path_edit.setText(file_name)
 
-    def on_check_box_clicked(self, id):
-        # 处理复选框点击事件
-        if id == 1:
-            self.COM1_name.setEnabled(True)
-            self.COM2_name.setEnabled(True)
-            self.COM3_name.setDisabled(True)
-            self.COM3_name.clear()
-        elif id == 2:
-            self.COM2_name.setEnabled(True)
-            self.COM1_name.setDisabled(True)
-            self.COM3_name.setDisabled(True)
-            self.COM1_name.clear()
-            self.COM3_name.clear()
-        elif id == 3:
-            self.COM1_name.setEnabled(True)
-            self.COM2_name.setDisabled(True)
-            self.COM3_name.setDisabled(True)
-            self.COM2_name.clear()
-            self.COM3_name.clear()
-        elif id == 4:
-            self.COM3_name.setEnabled(True)
-            self.COM1_name.setEnabled(True)
-            self.COM2_name.setDisabled(True)
-            self.COM2_name.clear()
-        # 显示COMs
-        self.list_COM()
-
     def list_COM(self):
         ports = self.get_current_COM()
         for port in ports:
-            if self.COM1_name.isEnabled():
-                self.COM1_name.addItem(port)
-            if self.COM2_name.isEnabled():
-                self.COM2_name.addItem(port)
-            if self.COM3_name.isEnabled():
-                self.COM3_name.addItem(port)
+            self.test_COM.addItem(port)
 
     def get_current_COM(self):
         serial_list = []

@@ -1,15 +1,14 @@
 import os
 from PyQt5 import QtCore, QtWidgets
-from PyQt5.QtWidgets import QHBoxLayout, QCheckBox, QLineEdit, QComboBox, QButtonGroup, QWidget, QSplitter, \
-    QPlainTextEdit, QTextEdit, QGraphicsView, QGraphicsScene, QGraphicsRectItem
-from PyQt5.QtCore import pyqtSlot, QUrl, QRect, Qt
-from PyQt5.QtGui import QTextDocument, QTextCursor, QFont, QTextFrameFormat, QTextImageFormat
+from PyQt5.QtWidgets import QHBoxLayout, QCheckBox, QComboBox, QButtonGroup, QWidget, QSplitter,  QTextEdit
+from PyQt5.QtCore import pyqtSlot
 
 
 class Ui_MainWindow(object):
     options = QtWidgets.QFileDialog.Options()
     options |= QtWidgets.QFileDialog.ReadOnly
     project_path = path_dir = str(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
+    config_file_path = os.path.join(project_path, "UI", "config.ini")
     logo_take_path = os.path.join(project_path, "Photo", "Logo", "Logo", "Logo.png")
     logo_key_path = os.path.join(project_path, "Photo", "Logo", "Key", "Key.png")
     camera_key_path = os.path.join(project_path, "Photo", "CameraPhoto", "Key", "Key.png")
@@ -26,7 +25,7 @@ class Ui_MainWindow(object):
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1000, 600)
+        MainWindow.resize(1100, 600)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         # 创建水平布局
         self.main_layout = QHBoxLayout(self.centralwidget)
@@ -41,58 +40,63 @@ class Ui_MainWindow(object):
 
         layout_device_info = QHBoxLayout()
         self.label_device_name = QtWidgets.QLabel("设备名称:")
-        self.edit_device_name = QComboBox(self)
+        self.edit_device_name = QComboBox()
+        # 测试COM
+        self.COM_tips = QtWidgets.QLabel("测试COM口:")
+        self.test_COM = QComboBox()
         layout_device_info.addWidget(self.label_device_name)
         layout_device_info.addWidget(self.edit_device_name)
+        layout_device_info.addWidget(self.COM_tips)
+        layout_device_info.addWidget(self.test_COM)
         layout_device_info.addStretch(1)
         self.verticalLayout_left.addLayout(layout_device_info)
+        # 间隔
+        self.verticalLayout_left.addWidget(QtWidgets.QLabel())
 
         layout_device_control = QHBoxLayout()
-        self.boot_way = QtWidgets.QLabel("开关机方式:")
-        self.is_power_button_boot = QCheckBox("适配器+按键")
-        self.is_power_boot = QCheckBox("适配器")
-        self.is_button_boot = QCheckBox("电池按键")
-        self.is_900_boot = QCheckBox("900P")
+        self.boot_way = QtWidgets.QLabel("接线方式:")
+        self.is_adapter = QCheckBox("适配器")
+        self.is_power_button = QCheckBox("电源按键")
+        self.is_battery = QCheckBox("电池")
+        self.is_usb = QCheckBox("Type-c/mico-usb")
+
         layout_device_control.addWidget(self.boot_way)
-        layout_device_control.addWidget(self.is_power_button_boot)
-        layout_device_control.addWidget(self.is_power_boot)
-        layout_device_control.addWidget(self.is_button_boot)
-        layout_device_control.addWidget(self.is_900_boot)
+        layout_device_control.addWidget(self.is_adapter)
+        layout_device_control.addWidget(self.is_power_button)
+        layout_device_control.addWidget(self.is_battery)
+        layout_device_control.addWidget(self.is_usb)
         layout_device_control.addStretch(1)
         # 将水平布局放入垂直布局
-
-        # 创建按钮组并将复选框添加到按钮组中
-        self.group = QButtonGroup()
-        self.group.addButton(self.is_power_button_boot, id=1)
-        self.group.addButton(self.is_power_boot, id=2)
-        self.group.addButton(self.is_button_boot, id=3)
-        self.group.addButton(self.is_900_boot, id=4)
         self.verticalLayout_left.addLayout(layout_device_control)
+        # 间隔
+        self.verticalLayout_left.addWidget(QtWidgets.QLabel())
 
-        layout_com = QHBoxLayout()
-        self.COMs_label = QtWidgets.QLabel("COMs配置:")
-        self.COM1_label = QtWidgets.QLabel("按键COM:")
-        self.COM1_name = QComboBox(self)
-        self.COM1_name.setDisabled(True)
-        layout_com.addWidget(self.COMs_label)
-        layout_com.addWidget(self.COM1_label)
-        layout_com.addWidget(self.COM1_name)
+        layout_COM_config = QHBoxLayout()
+        self.config_label = QtWidgets.QLabel("接线配置:")
+        self.adapter_label = QtWidgets.QLabel("适配器:")
+        self.adapter_config = QComboBox()
+        layout_COM_config.addWidget(self.config_label)
+        layout_COM_config.addWidget(self.adapter_label)
+        layout_COM_config.addWidget(self.adapter_config)
 
-        self.COM2_label = QtWidgets.QLabel("适配器COM:")
-        self.COM2_name = QComboBox(self)
-        self.COM2_name.setDisabled(True)
-        # self.COM1_name.setDisabled(True)
-        layout_com.addWidget(self.COM2_label)
-        layout_com.addWidget(self.COM2_name)
+        self.battery_label = QtWidgets.QLabel("电池:")
+        self.battery_config = QComboBox()
+        layout_COM_config.addWidget(self.battery_label)
+        layout_COM_config.addWidget(self.battery_config)
 
-        self.COM3_label = QtWidgets.QLabel("USB COM:")
-        self.COM3_name = QComboBox(self)
-        self.COM3_name.setDisabled(True)
-        # self.COM1_name.setDisabled(True)
-        layout_com.addWidget(self.COM3_label)
-        layout_com.addWidget(self.COM3_name)
-        layout_com.addStretch(1)
-        self.verticalLayout_left.addLayout(layout_com)
+        self.power_button_label = QtWidgets.QLabel("电源按键:")
+        self.power_button_config = QComboBox()
+        layout_COM_config.addWidget(self.power_button_label)
+        layout_COM_config.addWidget(self.power_button_config)
+
+        self.usb_label = QtWidgets.QLabel("USB:")
+        self.usb_config = QComboBox()
+        layout_COM_config.addWidget(self.usb_label)
+        layout_COM_config.addWidget(self.usb_config)
+        layout_COM_config.addStretch(1)
+        self.verticalLayout_left.addLayout(layout_COM_config)
+        # 间隔
+        self.verticalLayout_left.addWidget(QtWidgets.QLabel())
 
         # 上传图片
         self.reboot_logo_info = QtWidgets.QLabel("上传开机logo照片：")
@@ -131,14 +135,15 @@ class Ui_MainWindow(object):
         # 右侧部件
         right_widget = QWidget()
         self.verticalLayout_right = QtWidgets.QVBoxLayout(right_widget)
+        self.verticalLayout_right.addWidget(QtWidgets.QLabel("实时log打印:"))
         # self.log_edit = ScrollablePlainTextEdit(self)
         # self.log_edit.setReadOnly(True)
         # self.verticalLayout_right.addWidget(self.log_edit)
-
         self.text_edit = ScrollablePlainTextEdit()
         self.text_edit.setReadOnly(True)
         self.verticalLayout_right.addWidget(self.text_edit)
-
+        # 展示图片
+        self.verticalLayout_right.addWidget(QtWidgets.QLabel("每次重启后的捉拍:"))
         self.image_edit = ScrollablePlainTextEdit()
         width = self.image_edit.viewport().width()
         height = self.image_edit.viewport().height()
