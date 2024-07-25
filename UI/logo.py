@@ -30,20 +30,17 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         self.intiui()
 
     def intiui(self):
-        try:
-            self.select_devices_name()
-            self.group.buttonClicked[int].connect(self.on_check_box_clicked)
-            self.logo_upload_button.clicked.connect(self.upload_reboot_logo)
-            self.show_keying_button.clicked.connect(self.show_keying_image)
-            self.submit_button.clicked.connect(self.handle_submit)
-            self.stop_process_button.clicked.connect(self.stop_process)
+        self.select_devices_name()
+        self.group.buttonClicked[int].connect(self.on_check_box_clicked)
+        self.logo_upload_button.clicked.connect(self.upload_reboot_logo)
+        self.show_keying_button.clicked.connect(self.show_keying_image)
+        self.submit_button.clicked.connect(self.handle_submit)
+        self.stop_process_button.clicked.connect(self.stop_process)
 
-            # 初始化图片cursor
-            # self.add_logo_image()
-            # self.get_file_modification_time()
-            self.cursor = QTextCursor(self.document)
-        except Exception as e:
-            print(e)
+        # 初始化图片cursor
+        # self.add_logo_image()
+        # self.get_file_modification_time()
+        self.cursor = QTextCursor(self.document)
 
     def get_message_box(self, text):
         QMessageBox.warning(self, "错误提示", text)
@@ -128,8 +125,9 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
     def closeEvent(self, event):
         # 在窗口关闭时停止定时器,关闭任务运行
         # 停止 QProcess 进程
-        self.force_task_kill()
+        self.invoke("taskkill /PID %s /F /T" % str(self.qt_process.processId()))
         self.timer.stop()
+        self.file_timer.stop()
         event.accept()
 
     def copy_file(self, origin, des):

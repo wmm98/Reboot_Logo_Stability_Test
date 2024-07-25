@@ -1,5 +1,7 @@
 import cv2
 from skimage.metrics import structural_similarity as ssim
+from PIL import Image
+import imagehash
 
 
 class Analysis:
@@ -34,7 +36,7 @@ class Analysis:
         # 调整第二张图片的大小以匹配第一张图片的尺寸
         if size1 != size2:
             image2 = self.resize_image(image2, size1)
-            cv2.imwrite('../Camera/output_image3.jpg', image2)
+            # cv2.imwrite('../Camera/output_image3.jpg', image2)
 
         # cv2.imshow('Resized Image 1', image1)
         # cv2.imshow('Original Image 2', image2)
@@ -55,3 +57,42 @@ class Analysis:
         # cv2.waitKey(0)
         # cv2.destroyAllWindows()
         return float(similarity_percentage)
+
+    def calculate_phash(self, image_path):
+        """
+        计算图像的感知哈希值
+        """
+        img = Image.open(image_path)
+        return imagehash.phash(img)
+
+    def compare_images(self, image_path1, image_path2):
+        """
+        比较两张图片的感知哈希值
+        """
+        hash1 = self.calculate_phash(image_path1)
+        hash2 = self.calculate_phash(image_path2)
+
+        # 计算哈希值之间的汉明距离
+        hash_distance = hash1 - hash2
+
+        # 返回相似度（汉明距离越小，图片越相似）
+        return hash_distance
+
+    def get_images_distance(self, image_path1, image_path2):
+
+        # 示例图片路径
+        # image_path1 = 'Key3.png'
+        # image_path2 = 'Logo.png'
+
+        # 比较两张图片
+        distance = self.compare_images(image_path1, image_path2)
+        print(f"Image hash distance: {distance}")
+
+        # 判断图片是否相似（设定一个阈值）
+        threshold = 5  # 可以根据需要调整阈值
+        if distance < threshold:
+            print("Images are similar")
+        else:
+            print("Images are not similar")
+
+        return distance

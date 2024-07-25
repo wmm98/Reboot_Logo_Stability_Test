@@ -48,7 +48,7 @@ def check_boot_complete_with_thread(device, timeout=120):
 if __name__ == '__main__':
     # 先对设备的时间进行修改，使用网络时间，方便看log
     # 图片处理相关
-    origin_logo_logo_img = os.path.join(conf.logo_logo_path, "Logo1.png")
+    origin_logo_logo_img = os.path.join(conf.logo_logo_path, "Logo.png")
     origin_logo_key_img = os.path.join(conf.logo_key_path, "Key.png")
     # 需要在前端先删除存留的失败照片,调试的时候先在这里删除
     failed_img_path = os.path.join(conf.camera_key_img_path, "Failed.png")
@@ -59,10 +59,16 @@ if __name__ == '__main__':
 
     flag = 0
     log.info("*************开关卡logo测试开始****************")
+    # interval = [i for i in range(1, 100)]
     while True:
         flag += 1
         # 上下电启动
-        t_ser.loginSer("COM59")
+        try:
+            t_ser.loginSer("COM55")
+        except Exception as e:
+            log.error("串口已经被占用， 请检查！！！")
+            log.error(str(e))
+            break
         t_ser.send_ser_disconnect_cmd()
         time.sleep(1)
         t_ser.send_ser_connect_cmd()
@@ -71,14 +77,15 @@ if __name__ == '__main__':
             # exit_event.set()
             break
         log.info("正在开机，请等...")
-        if check_adb_online_with_thread("3TP0110TB20222800005"):
-            if check_boot_complete_with_thread("3TP0110TB20222800005", timeout=120):
-                log.info("设备完全启动")
-            else:
-                log.info("设备无法完全启动, 请检查!!!")
+        time.sleep(60)
+        # if check_adb_online_with_thread("3TP0110TB20222800005"):
+        #     if check_boot_complete_with_thread("3TP0110TB20222800005", timeout=120):
+        #         log.info("设备完全启动")
+        #     else:
+        #         log.info("设备无法完全启动, 请检查!!!")
 
         # 拍照
-        time.sleep(60)
+        # time.sleep(60)
         origin_camera_path = os.path.join(conf.camera_origin_img_path, "Origin.png")
         if os.path.exists(origin_camera_path):
             os.remove(origin_camera_path)
@@ -92,14 +99,23 @@ if __name__ == '__main__':
         key_ing.save_key_photo(origin_camera_path, camera_key_img_path)
         log.info("抠图完成")
         # 对比抠图/原图 origin_camera_path, origin_logo_logo_img
-        percent = analysis.get_similarity(origin_logo_key_img, camera_key_img_path)
-        log.info("样本logo和测试logo相似度为%s%%" % str(percent))
-        if percent > 95:
-            os.rename(camera_key_img_path, failed_img_path)
+        # percent = analysis.get_similarity(origin_logo_key_img, camera_key_img_path)
+        # log.info("样本logo和测试logo相似度为%s%%" % str(percent))
+        # 对比距离值：
+        distance = analysis.get_images_distance(origin_logo_key_img, camera_key_img_path)
+        # if distance:
+        log.info("两张图片之间的距离值为： %s" % str(distance))
+        threshold = 15  # 可以根据需要调整阈值
+        if distance > threshold:
             log.info("当前测试认为复现卡logo, 请检查设备!!!")
-            # 捕捉前半个钟的log
-            device_check.logcat(60)
-            break
+            # break
+
+        # if percent < 95:
+        #     # os.rename(camera_key_img_path, failed_img_path)
+        #     log.info("当前测试认为复现卡logo, 请检查设备!!!")
+        #     # 捕捉前半个钟的log
+        #     device_check.logcat(60)
+        #     break
         t_ser.logoutSer()
         log.info("*******************压测完成%d次********************" % flag)
         time.sleep(3)

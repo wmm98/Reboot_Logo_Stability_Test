@@ -139,7 +139,6 @@ class Ui_MainWindow(object):
         self.text_edit.setReadOnly(True)
         self.verticalLayout_right.addWidget(self.text_edit)
 
-
         self.image_edit = ScrollablePlainTextEdit()
         width = self.image_edit.viewport().width()
         height = self.image_edit.viewport().height()
