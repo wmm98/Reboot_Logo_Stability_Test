@@ -2,17 +2,7 @@ import time
 from Common import config, image_analysis, camera_operate, keying, m_serial, adb_timer, debug_log
 import os
 from Common.device_check import DeviceCheck
-import sys
-import threading
-
-log = debug_log.MyLog()
-
-conf = config.Config()
-analysis = image_analysis.Analysis()
-camera = camera_operate.Camera()
-key_ing = keying.KeyPhoto()
-t_ser = m_serial.SerialD()
-device_check = DeviceCheck("3TP0110TB20222800005")
+import configparser
 
 
 # 检查adb在线
@@ -46,6 +36,15 @@ def check_boot_complete_with_thread(device, timeout=120):
 
 
 if __name__ == '__main__':
+    config = configparser.ConfigParser()
+    config.read('config.ini')
+    log = debug_log.MyLog()
+    conf = config.Config()
+    analysis = image_analysis.Analysis()
+    camera = camera_operate.Camera()
+    key_ing = keying.KeyPhoto()
+    t_ser = m_serial.SerialD()
+    device_check = DeviceCheck(config.get('Config', "device_name"))
     # 先对设备的时间进行修改，使用网络时间，方便看log
     # 图片处理相关
     origin_logo_logo_img = os.path.join(conf.logo_logo_path, "Logo.png")
@@ -56,33 +55,52 @@ if __name__ == '__main__':
         os.remove(failed_img_path)
 
     log.info("****************开始测试*****************")
-
     flag = 0
     log.info("*************开关卡logo测试开始****************")
-    interval = [i*4 for i in range(1, 100)]
+    interval = [i * 4 for i in range(1, 100)]
     while True:
         flag += 1
         # 上下电启动
         try:
-            t_ser.loginSer("COM55")
+            t_ser.loginSer(config.get('Config', "COM"))
         except Exception as e:
             log.error("串口已经被占用， 请检查！！！")
             log.error(str(e))
             break
+        # 如果为1路继电器，则为断适配器开关机
+        if config.get('Config', "relay_type") == "is_1_relay":
+            if config.get('Config', "adapter_config") == "relay_1":
+                t_ser.open_first_relay()
+                time.sleep(1)
+                t_ser.close_first_relay()
+            elif config.get('Config', "adapter_config") == "relay_2":
+                t_ser.open_second_relay()
+                time.sleep(1)
+                t_ser.close_second_relay()
+            elif config.get('Config', "battery_config") == "relay_3":
+                t_ser.open_third_relay()
+                time.sleep(1)
+                t_ser.close_third_relay()
+            else:
+                t_ser.open_fourth_relay()
+                time.sleep(1)
+                t_ser.close_fourth_relay()
+        else:
+            # 4路继电器
+            pass
+
         t_ser.send_ser_disconnect_cmd()
         time.sleep(1)
         t_ser.send_ser_connect_cmd()
         if not t_ser.confirm_ser_connected():
-            # 不执行
-            # exit_event.set()
             break
         log.info("正在开机，请等...")
         time.sleep(interval[flag])
-        # if check_adb_online_with_thread("3TP0110TB20222800005"):
-        #     if check_boot_complete_with_thread("3TP0110TB20222800005", timeout=120):
-        #         log.info("设备完全启动")
-        #     else:
-        #         log.info("设备无法完全启动, 请检查!!!")
+        if check_adb_online_with_thread(config.get('Config', "device_name")):
+            if check_boot_complete_with_thread(config.get('Config', "device_name"), timeout=120):
+                log.info("设备完全启动")
+            else:
+                log.info("设备无法完全启动, 请检查!!!")
 
         # 拍照
         # time.sleep(60)

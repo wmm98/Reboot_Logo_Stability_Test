@@ -187,6 +187,47 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         else:
             config[section]["is_usb"] = "0"
 
+        # 接线配置
+        if self.adapter_config.isEnabled():
+            if self.adapter_config.currentText() == "1路":
+                config[section]["adapter_config"] = "relay_1"
+            elif self.adapter_config.currentText() == "2路":
+                config[section]["adapter_config"] = "relay_2"
+            elif self.adapter_config.currentText() == "3路":
+                config[section]["adapter_config"] = "relay_3"
+            else:
+                config[section]["adapter_config"] = "relay_4"
+
+        if self.power_button_config.isEnabled():
+            if self.power_button_config.currentText() == "1路":
+                config[section]["power_button_config"] = "relay_1"
+            elif self.power_button_config.currentText() == "2路":
+                config[section]["power_button_config"] = "relay_2"
+            elif self.power_button_config.currentText() == "3路":
+                config[section]["power_button_config"] = "relay_3"
+            else:
+                config[section]["power_button_config"] = "relay_4"
+
+        if self.battery_config.isEnabled():
+            if self.battery_config.currentText() == "1路":
+                config[section]["battery_config"] = "relay_1"
+            elif self.battery_config.currentText() == "2路":
+                config[section]["battery_config"] = "relay_2"
+            elif self.battery_config.currentText() == "3路":
+                config[section]["battery_config"] = "relay_3"
+            else:
+                config[section]["battery_config"] = "relay_4"
+
+        if self.usb_config.isEnabled():
+            if self.usb_config.currentText() == "1路":
+                config[section]["usb_config"] = "relay_1"
+            elif self.usb_config.currentText() == "2路":
+                config[section]["usb_config"] = "relay_2"
+            elif self.usb_config.currentText() == "3路":
+                config[section]["usb_config"] = "relay_3"
+            else:
+                config[section]["usb_config"] = "relay_4"
+
         with open(file_name, 'w') as configfile:
             config.write(configfile)
 

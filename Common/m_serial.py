@@ -71,6 +71,30 @@ class SerialD:
                 return False
             time.sleep(1)
 
+    def open_first_relay(self):
+        ser.write(bytes.fromhex("A0 01 01 A2"))
+
+    def close_first_relay(self):
+        ser.write(bytes.fromhex("A0 01 00 A1"))
+
+    def open_second_relay(self):
+        ser.write(bytes.fromhex("A0 02 01 A3"))
+
+    def close_second_relay(self):
+        ser.write(bytes.fromhex("A0 02 00 A2"))
+
+    def open_third_relay(self):
+        ser.write(bytes.fromhex("A0 03 01 A4"))
+
+    def close_third_relay(self):
+        ser.write(bytes.fromhex("A0 03 00 A3"))
+
+    def open_fourth_relay(self):
+        ser.write(bytes.fromhex("A0 04 01 A5"))
+
+    def close_fourth_relay(self):
+        ser.write(bytes.fromhex("A0 04 00 A4"))
+
 
 if __name__ == '__main__':
     se = SerialD()
@@ -82,4 +106,3 @@ if __name__ == '__main__':
     se.send_ser_connect_cmd()
     # print(se.send_status_cmd())
     se.logoutSer()
-

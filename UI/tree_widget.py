@@ -161,9 +161,7 @@ class Ui_MainWindow(object):
         right_widget = QWidget()
         self.verticalLayout_right = QtWidgets.QVBoxLayout(right_widget)
         self.verticalLayout_right.addWidget(QtWidgets.QLabel("实时log打印:"))
-        # self.log_edit = ScrollablePlainTextEdit(self)
-        # self.log_edit.setReadOnly(True)
-        # self.verticalLayout_right.addWidget(self.log_edit)
+        # 展示log
         self.text_edit = ScrollablePlainTextEdit()
         self.text_edit.setReadOnly(True)
         self.verticalLayout_right.addWidget(self.text_edit)
