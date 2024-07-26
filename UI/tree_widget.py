@@ -15,8 +15,11 @@ class Ui_MainWindow(object):
     debug_log_path = os.path.join(project_path, "Log", "Debug", "debug_log.txt")
     run_bat_path = os.path.join(project_path, "Run", "bat_run.bat")
     failed_image_key_path = os.path.join(project_path, "Photo", "CameraPhoto", "Key", "Failed.png")
+    # 测试前先清除
     if os.path.exists(debug_log_path):
         os.remove(debug_log_path)
+    if os.path.exists(logo_key_path):
+        os.remove(logo_key_path)
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -70,12 +73,15 @@ class Ui_MainWindow(object):
         self.is_power_button = QCheckBox("电源按键")
         self.is_battery = QCheckBox("电池")
         self.is_usb = QCheckBox("Type-c/mico-usb")
+        self.usb_tips = QtWidgets.QLabel("usb接继电器仅限900P")
+        self.usb_tips.setStyleSheet("color: blue;")
 
         layout_device_control.addWidget(self.boot_way)
         layout_device_control.addWidget(self.is_adapter)
         layout_device_control.addWidget(self.is_power_button)
         layout_device_control.addWidget(self.is_battery)
         layout_device_control.addWidget(self.is_usb)
+        layout_device_control.addWidget(self.usb_tips)
         layout_device_control.addStretch(1)
         # 将水平布局放入垂直布局
         self.verticalLayout_left.addLayout(layout_device_control)
@@ -107,7 +113,7 @@ class Ui_MainWindow(object):
         self.usb_label = QtWidgets.QLabel("USB:")
         self.usb_config = QComboBox()
         self.usb_config.setDisabled(True)
-        self.config_tips = QtWidgets.QLabel("接线提示:电池接常闭端(COM,NC）,其他接常开端(COM,NO)")
+        self.config_tips = QtWidgets.QLabel("接线提示:电源按键接常开端(COM,N0）,其他接常闭端(COM,NC)")
         self.config_tips.setStyleSheet("color: blue;")
         layout_COM_config.addWidget(self.usb_label)
         layout_COM_config.addWidget(self.usb_config)

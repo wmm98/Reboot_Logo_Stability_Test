@@ -38,8 +38,6 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         self.stop_process_button.clicked.connect(self.stop_process)
 
         # 初始化图片cursor
-        # self.add_logo_image()
-        # self.get_file_modification_time()
         self.cursor = QTextCursor(self.document)
 
     def get_message_box(self, text):
@@ -52,6 +50,14 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         # 初始化log文件
         with open(self.debug_log_path, "w") as f:
             f.close()
+
+        if len(self.edit_device_name.currentText()) == 0:
+            self.get_message_box("没检测到可用的机器，请检查或者重启界面！！！")
+            return
+        if len(self.test_COM.currentText()) == 0:
+            self.get_message_box("没检测到可用的机器，请检查或者重启界面！！！")
+            return
+
         # 文本框非空检查
         if not self.is_1_relay.isChecked() and not self.is_4_relay.isChecked():
             self.get_message_box("请选择继电器种类！！！")
@@ -82,7 +88,12 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         # # 检查文件是否存在
         reboot_logo_path = self.logo_path_edit.text().strip()
         if not os.path.exists(reboot_logo_path):
-            self.get_message_box("文件夹路径：%s不存在" % reboot_logo_path)
+            self.get_message_box("文件路径：%s不存在" % reboot_logo_path)
+            return
+
+        # 检查是否抠图了
+        if not os.path.exists(self.logo_key_path):
+            self.get_message_box("请抠图检查图片是否完整！！！")
             return
 
         # 检查完保存配置
@@ -151,7 +162,31 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         config = configparser.ConfigParser()
         section = "Config"
         config.add_section(section)
-        config[section]['test'] = "1"
+        config[section]['device_name'] = self.edit_device_name.currentText()
+        config[section]["COM"] = self.test_COM.currentText()
+        # 继电器种类
+        if self.is_1_relay:
+            config[section]["relay_type"] = "is_1_relay"
+        else:
+            config[section]["relay_type"] = "is_4_relay"
+        # 接线方式
+        if self.is_adapter.isChecked():
+            config[section]["is_adapter"] = "1"
+        else:
+            config[section]["is_adapter"] = "0"
+        if self.is_power_button.isChecked():
+            config[section]["is_power_button"] = "1"
+        else:
+            config[section]["is_power_button"] = "0"
+        if self.is_battery.isChecked():
+            config[section]["is_battery"] = "1"
+        else:
+            config[section]["is_battery"] = "0"
+        if self.is_usb.isChecked():
+            config[section]["is_usb"] = "1"
+        else:
+            config[section]["is_usb"] = "0"
+
         with open(file_name, 'w') as configfile:
             config.write(configfile)
 
@@ -164,12 +199,8 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
     def check_image_modification(self):
         """检查图片文件是否有修改"""
         if os.path.exists(self.camera_key_path):
-            print(self.camera_key_path)
             current_mod_time = self.get_file_modification_time(self.camera_key_path)
-            print(current_mod_time)
             if current_mod_time != self.last_modify_time:
-                # self.text_edit.insertPlainText("图片时间已经修改" + current_mod_time.toString(Qt.TextDate))
-                # print(f"图片文件已更改: {current_mod_time.toString()}")
                 self.last_modify_time = current_mod_time  # 更新为新的修改时间
                 self.add_logo_image()
 
@@ -269,9 +300,6 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def key_photo(self):
         original_path = self.logo_path_edit.text().strip()
-        if len(original_path) == 0:
-            self.get_message_box("请上传图片再抠图")
-            return
         self.save_key_photo(original_path, self.logo_key_path)
 
     def save_key_photo(self, orig_path, new_path):
