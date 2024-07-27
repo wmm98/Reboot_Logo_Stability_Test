@@ -36,5 +36,8 @@ class DeviceCheck:
         boot_res = self.shell.invoke("adb -s %s shell getprop sys.boot_completed" % self.device_name)
         return boot_res
 
+    def device_shutdown(self):
+        self.shell.invoke("adb -s %s shell reboot -p" % self.device_name)
+
     def logcat(self, log_time):
         self.shell.invoke("adb -s %s logcat -t %d >> %s" % (self.device_name, log_time, Config.system_failed_log_path))

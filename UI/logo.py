@@ -21,19 +21,14 @@ class AllCertCaseValue:
     ROOT_PROTOCON_STA_TMISCAN_B0 = 2
     ROOT_PROTOCON_STA_TMISCAN_B1 = 3
     ROOT_PROTOCON_STA_TMISCAN_B2 = 4
-    ROOT_PROTOCON_STA_TMISCAN_B3 = 5
-    ROOT_PROTOCON_STA_TMISCAN_B4 = 6
-    ROOT_PROTOCON_STA_TMISCAN_B5 = 7
 
 
 DictCommandInfo = {
 
     "A": AllCertCaseValue.ROOT_PROTOCON,
     "适配器开关机": AllCertCaseValue.ROOT_PROTOCON_STA_TMISCAN_B0,
-    "适配器+电源按键--正常关机（指令关机）": AllCertCaseValue.ROOT_PROTOCON_STA_TMISCAN_B1,
-    "适配器+电源按键--异常关机（适配器开路关机）": AllCertCaseValue.ROOT_PROTOCON_STA_TMISCAN_B2,
-    "电池+电源按键--正常关机（指令关机）": AllCertCaseValue.ROOT_PROTOCON_STA_TMISCAN_B3,
-    "电池+电源按键--异常关机（电池开路关机）": AllCertCaseValue.ROOT_PROTOCON_STA_TMISCAN_B4,
+    "适配器/电池+电源按键--正常关机（指令代替按键关机）": AllCertCaseValue.ROOT_PROTOCON_STA_TMISCAN_B1,
+    "适配器/电池+电源按键--异常关机（适配器/电池开路关机）": AllCertCaseValue.ROOT_PROTOCON_STA_TMISCAN_B2,
 }
 
 
@@ -75,7 +70,7 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         self.select_devices_name()
         self.list_COM()
         self.is_adapter.clicked.connect(self.adapter_checkbox_change)
-        self.is_battery.clicked.connect(self.battery_checkbox_change)
+        # self.is_battery.clicked.connect(self.battery_checkbox_change)
         self.is_power_button.clicked.connect(self.power_button_checkbox_change)
         self.is_usb.clicked.connect(self.usb_checkbox_change)
         self.logo_upload_button.clicked.connect(self.upload_reboot_logo)
@@ -121,13 +116,13 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
             return
 
         # 文本框非空检查
-        if not self.is_1_relay.isChecked() and not self.is_4_relay.isChecked():
-            self.get_message_box("请选择继电器种类！！！")
-            return
-
-        if not self.is_adapter.isChecked() and not self.is_power_button.isChecked() and not self.is_battery.isChecked() and not self.is_usb.isChecked():
-            self.get_message_box("请选择接线方式！！！")
-            return
+        # if not self.is_1_relay.isChecked() and not self.is_4_relay.isChecked():
+        #     self.get_message_box("请选择继电器种类！！！")
+        #     return
+        #
+        # if not self.is_adapter.isChecked() and not self.is_power_button.isChecked() and not self.is_battery.isChecked() and not self.is_usb.isChecked():
+        #     self.get_message_box("请选择接线方式！！！")
+        #     return
 
         # 继电器路数不能相同
         config_list = []
@@ -171,14 +166,10 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
             if slave["status"] == 2:
                 if "适配器开关机" in slave["text"]:
                     self.cases.append("1")
-                elif "适配器+电源按键--正常关机" in slave["text"]:
+                elif "正常关机" in slave["text"]:
                     self.cases.append("2")
-                elif "适配器+电源按键--异常关机" in slave["text"]:
-                    self.cases.append("3")
-                elif "电池+电源按键--正常关机" in slave["text"]:
-                    self.cases.append("4")
                 else:
-                    self.cases.append("5")
+                    self.cases.append("3")
         if len(self.cases) == 0:
             self.get_message_box("请勾选用例！！！")
             return
@@ -189,22 +180,22 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         # 每次提交先删除失败的照片，避免检错误
         if os.path.exists(self.failed_image_key_path):
             os.remove(self.failed_image_key_path)
-        #
-        # self.start_qt_process(self.run_bat_path)
-        #
-        # self.file_timer = QTimer(self)
-        # self.file_timer.timeout.connect(self.check_image_modification)
-        #
-        # self.timer = QTimer(self)
-        # self.timer.timeout.connect(self.update_debug_log)
-        #
-        # self.check_interval = 1000  # 定时器间隔，单位毫秒
-        # self.timer.start(self.check_interval)  # 启动定时器
-        # self.file_timer.start(self.check_interval)
-        #
-        # self.stop_process_button.setEnabled(True)
-        # self.submit_button.setDisabled(True)
-        # self.submit_button.setText("测试中...")
+        # 启动
+        self.start_qt_process(self.run_bat_path)
+
+        self.file_timer = QTimer(self)
+        self.file_timer.timeout.connect(self.check_image_modification)
+
+        self.timer = QTimer(self)
+        self.timer.timeout.connect(self.update_debug_log)
+
+        self.check_interval = 1000  # 定时器间隔，单位毫秒
+        self.timer.start(self.check_interval)  # 启动定时器
+        self.file_timer.start(self.check_interval)
+
+        self.stop_process_button.setEnabled(True)
+        self.submit_button.setDisabled(True)
+        self.submit_button.setText("测试中...")
 
     def adapter_checkbox_change(self):
         if self.adapter_config.isEnabled():
@@ -253,11 +244,11 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         config[section]['cases'] = ",".join(self.cases)
         config[section]['device_name'] = self.edit_device_name.currentText()
         config[section]["COM"] = self.test_COM.currentText()
-        # 继电器种类
-        if self.is_1_relay:
-            config[section]["relay_type"] = "is_1_relay"
-        else:
-            config[section]["relay_type"] = "is_4_relay"
+        # # 继电器种类
+        # if self.is_1_relay:
+        #     config[section]["relay_type"] = "is_1_relay"
+        # else:
+        #     config[section]["relay_type"] = "is_4_relay"
         # 接线方式
         if self.is_adapter.isChecked():
             config[section]["is_adapter"] = "1"
@@ -279,13 +270,13 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         # 接线配置
         if self.adapter_config.isEnabled():
             if self.adapter_config.currentText() == "1路":
-                config[section]["adapter_config"] = "relay_1"
+                config[section]["adapter_power_config"] = "relay_1"
             elif self.adapter_config.currentText() == "2路":
-                config[section]["adapter_config"] = "relay_2"
+                config[section]["adapter_power_config"] = "relay_2"
             elif self.adapter_config.currentText() == "3路":
-                config[section]["adapter_config"] = "relay_3"
+                config[section]["adapter_power_config"] = "relay_3"
             else:
-                config[section]["adapter_config"] = "relay_4"
+                config[section]["adapter_power_config"] = "relay_4"
 
         if self.power_button_config.isEnabled():
             if self.power_button_config.currentText() == "1路":
@@ -297,15 +288,15 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
             else:
                 config[section]["power_button_config"] = "relay_4"
 
-        if self.battery_config.isEnabled():
-            if self.battery_config.currentText() == "1路":
-                config[section]["battery_config"] = "relay_1"
-            elif self.battery_config.currentText() == "2路":
-                config[section]["battery_config"] = "relay_2"
-            elif self.battery_config.currentText() == "3路":
-                config[section]["battery_config"] = "relay_3"
-            else:
-                config[section]["battery_config"] = "relay_4"
+        # if self.battery_config.isEnabled():
+        #     if self.battery_config.currentText() == "1路":
+        #         config[section]["battery_config"] = "relay_1"
+        #     elif self.battery_config.currentText() == "2路":
+        #         config[section]["battery_config"] = "relay_2"
+        #     elif self.battery_config.currentText() == "3路":
+        #         config[section]["battery_config"] = "relay_3"
+        #     else:
+        #         config[section]["battery_config"] = "relay_4"
 
         if self.usb_config.isEnabled():
             if self.usb_config.currentText() == "1路":
