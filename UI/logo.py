@@ -2,7 +2,7 @@ import subprocess
 import sys
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import *
-from PyQt5.QtCore import QTimer, QProcess
+from PyQt5.QtCore import QTimer, QProcess, Qt
 from tree_widget import Ui_MainWindow
 import os
 import shutil
@@ -15,6 +15,28 @@ from PyQt5.QtGui import QTextDocument, QTextCursor, QTextImageFormat
 import configparser
 
 
+class AllCertCaseValue:
+    ROOT_PROTOCON = 0
+    ROOT_PROTOCON_STA_CHILD = 1
+    ROOT_PROTOCON_STA_TMISCAN_B0 = 2
+    ROOT_PROTOCON_STA_TMISCAN_B1 = 3
+    ROOT_PROTOCON_STA_TMISCAN_B2 = 4
+    ROOT_PROTOCON_STA_TMISCAN_B3 = 5
+    ROOT_PROTOCON_STA_TMISCAN_B4 = 6
+    ROOT_PROTOCON_STA_TMISCAN_B5 = 7
+
+
+DictCommandInfo = {
+
+    "A": AllCertCaseValue.ROOT_PROTOCON,
+    "适配器开关机": AllCertCaseValue.ROOT_PROTOCON_STA_TMISCAN_B0,
+    "适配器+电源按键--正常关机（指令关机）": AllCertCaseValue.ROOT_PROTOCON_STA_TMISCAN_B1,
+    "适配器+电源按键--异常关机（适配器开路关机）": AllCertCaseValue.ROOT_PROTOCON_STA_TMISCAN_B2,
+    "电池+电源按键--正常关机（指令关机）": AllCertCaseValue.ROOT_PROTOCON_STA_TMISCAN_B3,
+    "电池+电源按键--异常关机（电池开路关机）": AllCertCaseValue.ROOT_PROTOCON_STA_TMISCAN_B4,
+}
+
+
 class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
 
     def __init__(self):
@@ -23,9 +45,33 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         self.last_modify_time = 0
         # 初始化读取内容读取指针在开始位置
         self.setupUi(self)
+        self.AllTestCase = None
         self.intiui()
+        self.cases_selected_sum = 0
 
     def intiui(self):
+        # 用例数结构
+        # 设置列数
+        self.treeWidget.setColumnCount(1)
+
+        # 设置树形控件头部的标题
+        self.treeWidget.setHeaderLabels(['测试场景'])
+        self.treeWidget.setColumnWidth(0, 120)
+
+        # 设置根节点
+        self.AllTestCase = QTreeWidgetItem(self.treeWidget)
+        self.AllTestCase.setText(0, '测试项')
+
+        for value in DictCommandInfo.keys():
+            if DictCommandInfo[value] > AllCertCaseValue.ROOT_PROTOCON_STA_CHILD:
+                item_sta_father = QTreeWidgetItem(self.AllTestCase)
+                item_sta_father.setText(0, value)
+                item_sta_father.setCheckState(0, Qt.Unchecked)
+                item_sta_father.setFlags(item_sta_father.flags() | Qt.ItemIsSelectable)
+
+        # 节点全部展开
+        self.treeWidget.expandAll()
+        # 链槽
         self.select_devices_name()
         self.list_COM()
         self.is_adapter.clicked.connect(self.adapter_checkbox_change)
@@ -75,7 +121,7 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
             config_list.append(self.power_button_config.currentText())
         if self.battery_config.isEnabled():
             config_list.append(self.battery_config.currentText())
-        if self. usb_config.isEnabled():
+        if self.usb_config.isEnabled():
             config_list.append(self.usb_config.currentText())
         if len(config_list) != len(set(config_list)):
             self.get_message_box("接线配置有相同，请检查！！！")

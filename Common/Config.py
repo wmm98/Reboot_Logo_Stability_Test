@@ -12,6 +12,7 @@ class Config:
     debug_log_path = os.path.join(project_path, "Log", "Debug", "debug_log.txt")
     system_failed_log_path = os.path.join(project_path, "Log", "Logcat", "failed_logcat.txt")
     flag_file_path = os.path.join(project_path, "UI", "flag.txt")
+    config_file_path = os.path.join(project_path, "UI", "config.ini")
 
 
 

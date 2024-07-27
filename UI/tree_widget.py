@@ -23,12 +23,12 @@ class Ui_MainWindow(object):
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1100, 600)
+        MainWindow.resize(1100, 700)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         # 创建水平布局
         self.main_layout = QHBoxLayout(self.centralwidget)
 
-        # 创建 QSplitter 控件
+        # 创建 QSplitter 控件，分割两个子窗口
         splitter = QSplitter()
         self.main_layout.addWidget(splitter)
 
@@ -146,7 +146,13 @@ class Ui_MainWindow(object):
         self.test_image_label.setScaledContents(True)
         self.verticalLayout_left.addWidget(self.test_image_label)
         self.verticalLayout_left.setSpacing(10)
-        # self.main_layout.setSpacing(2)
+
+        # 用例树
+        self.treeWidget = QtWidgets.QTreeWidget()
+        self.treeWidget.setSelectionMode(QtWidgets.QTreeWidget.ExtendedSelection)  # 设置多选模式
+        self.treeWidget.setObjectName("treeWidget")
+        self.treeWidget.headerItem().setText(0, "1")
+        self.verticalLayout_left.addWidget(self.treeWidget)
 
         # 提交按钮
         self.submit_button = QtWidgets.QPushButton("开始压测")

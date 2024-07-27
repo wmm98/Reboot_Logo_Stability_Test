@@ -67,7 +67,7 @@ if __name__ == '__main__':
             log.error("串口已经被占用， 请检查！！！")
             log.error(str(e))
             break
-        # 如果为1路继电器，则为断适配器开关机
+        # 如果为1路继电器，则为断适配器开关机，适配器常闭状态
         if config.get('Config', "relay_type") == "is_1_relay":
             if config.get('Config', "adapter_config") == "relay_1":
                 t_ser.open_first_relay()
@@ -87,7 +87,10 @@ if __name__ == '__main__':
                 t_ser.close_fourth_relay()
         else:
             # 4路继电器
-            pass
+            # 适配器+电源按键， 适配器常闭，电源按键常开
+            if int(config.get('Config', "is_adapter")) and int(config.get('Config', "is_power_button")) and \
+                    not int(config.get('Config', "is_battery")) and not int(config.get('Config', "is_usb")):
+                pass
 
         t_ser.send_ser_disconnect_cmd()
         time.sleep(1)
