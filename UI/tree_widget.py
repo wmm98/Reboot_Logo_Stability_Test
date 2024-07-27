@@ -23,7 +23,7 @@ class Ui_MainWindow(object):
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1100, 700)
+        MainWindow.resize(1100, 900)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         # 创建水平布局
         self.main_layout = QHBoxLayout(self.centralwidget)

@@ -86,6 +86,22 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         # 初始化图片cursor
         self.cursor = QTextCursor(self.document)
 
+    # 获取所有节点的状态
+    def get_tree_item_status(self, tree_item):
+        status = tree_item.checkState(0)
+        if status == 2:
+            self.cases_selected_sum += 1
+        result = {
+            "text": tree_item.text(0),
+            "status": status,
+            "children": []
+        }
+        # 我添加的
+        for i in range(tree_item.childCount()):
+            child_item = tree_item.child(i)
+            result["children"].append(self.get_tree_item_status(child_item))
+        return result
+
     def get_message_box(self, text):
         QMessageBox.warning(self, "错误提示", text)
 
@@ -142,28 +158,53 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
             self.get_message_box("请抠图检查图片是否完整！！！")
             return
 
+        # 检查用例是否为空
+        self.tree_status = []
+        for i in range(self.treeWidget.topLevelItemCount()):
+            item = self.treeWidget.topLevelItem(i)
+            # 2 表示已勾选，0 表示未勾选，1 表示半选中
+            self.tree_status.append(self.get_tree_item_status(item))
+
+        # 保存要跑的用例
+        self.cases = []
+        for slave in self.tree_status[0]["children"]:
+            if slave["status"] == 2:
+                if "适配器开关机" in slave["text"]:
+                    self.cases.append("1")
+                elif "适配器+电源按键--正常关机" in slave["text"]:
+                    self.cases.append("2")
+                elif "适配器+电源按键--异常关机" in slave["text"]:
+                    self.cases.append("3")
+                elif "电池+电源按键--正常关机" in slave["text"]:
+                    self.cases.append("4")
+                else:
+                    self.cases.append("5")
+        if len(self.cases) == 0:
+            self.get_message_box("请勾选用例！！！")
+            return
+
         # 检查完保存配置
         self.save_config(self.config_file_path)
 
         # 每次提交先删除失败的照片，避免检错误
         if os.path.exists(self.failed_image_key_path):
             os.remove(self.failed_image_key_path)
-
-        self.start_qt_process(self.run_bat_path)
-
-        self.file_timer = QTimer(self)
-        self.file_timer.timeout.connect(self.check_image_modification)
-
-        self.timer = QTimer(self)
-        self.timer.timeout.connect(self.update_debug_log)
-
-        self.check_interval = 1000  # 定时器间隔，单位毫秒
-        self.timer.start(self.check_interval)  # 启动定时器
-        self.file_timer.start(self.check_interval)
-
-        self.stop_process_button.setEnabled(True)
-        self.submit_button.setDisabled(True)
-        self.submit_button.setText("测试中...")
+        #
+        # self.start_qt_process(self.run_bat_path)
+        #
+        # self.file_timer = QTimer(self)
+        # self.file_timer.timeout.connect(self.check_image_modification)
+        #
+        # self.timer = QTimer(self)
+        # self.timer.timeout.connect(self.update_debug_log)
+        #
+        # self.check_interval = 1000  # 定时器间隔，单位毫秒
+        # self.timer.start(self.check_interval)  # 启动定时器
+        # self.file_timer.start(self.check_interval)
+        #
+        # self.stop_process_button.setEnabled(True)
+        # self.submit_button.setDisabled(True)
+        # self.submit_button.setText("测试中...")
 
     def adapter_checkbox_change(self):
         if self.adapter_config.isEnabled():
@@ -208,6 +249,8 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         config = configparser.ConfigParser()
         section = "Config"
         config.add_section(section)
+
+        config[section]['cases'] = ",".join(self.cases)
         config[section]['device_name'] = self.edit_device_name.currentText()
         config[section]["COM"] = self.test_COM.currentText()
         # 继电器种类
@@ -382,7 +425,7 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         self.key_photo()
         pixmap = QPixmap(self.logo_key_path)
         if not pixmap.isNull():
-            scaled_pixmap = pixmap.scaled(439, 311)
+            scaled_pixmap = pixmap.scaled(439, 250)
             self.exp_image_label.setPixmap(scaled_pixmap)
 
     def key_photo(self):
