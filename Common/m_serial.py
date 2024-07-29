@@ -71,29 +71,26 @@ class SerialD:
                 return False
             time.sleep(1)
 
-    def open_first_relay(self):
-        ser.write(bytes.fromhex("A0 01 01 A2"))
+    def open_relay(self, num):
+        if num == 1:
+            ser.write(bytes.fromhex("A0 01 01 A2"))
+        elif num == 2:
+            ser.write(bytes.fromhex("A0 02 01 A3"))
+        elif num == 3:
+            ser.write(bytes.fromhex("A0 03 01 A4"))
+        elif num == 4:
+            ser.write(bytes.fromhex("A0 04 01 A5"))
 
-    def close_first_relay(self):
-        ser.write(bytes.fromhex("A0 01 00 A1"))
+    def close_relay(self, num):
+        if num == 1:
+            ser.write(bytes.fromhex("A0 01 00 A1"))
+        elif num == 2:
+            ser.write(bytes.fromhex("A0 02 00 A2"))
+        elif num == 3:
+            ser.write(bytes.fromhex("A0 03 00 A3"))
+        elif num == 4:
+            ser.write(bytes.fromhex("A0 04 00 A4"))
 
-    def open_second_relay(self):
-        ser.write(bytes.fromhex("A0 02 01 A3"))
-
-    def close_second_relay(self):
-        ser.write(bytes.fromhex("A0 02 00 A2"))
-
-    def open_third_relay(self):
-        ser.write(bytes.fromhex("A0 03 01 A4"))
-
-    def close_third_relay(self):
-        ser.write(bytes.fromhex("A0 03 00 A3"))
-
-    def open_fourth_relay(self):
-        ser.write(bytes.fromhex("A0 04 01 A5"))
-
-    def close_fourth_relay(self):
-        ser.write(bytes.fromhex("A0 04 00 A4"))
 
 
 if __name__ == '__main__':

@@ -71,7 +71,6 @@ class Ui_MainWindow(object):
         self.boot_way = QtWidgets.QLabel("接线方式:")
         self.is_adapter = QCheckBox("适配器/电池")
         self.is_power_button = QCheckBox("电源按键")
-        # self.is_battery = QCheckBox("电池")
         self.is_usb = QCheckBox("Type-c/mico-usb")
         self.usb_tips = QtWidgets.QLabel("usb接继电器仅限900P")
         self.usb_tips.setStyleSheet("color: blue;")
@@ -79,7 +78,6 @@ class Ui_MainWindow(object):
         layout_device_control.addWidget(self.boot_way)
         layout_device_control.addWidget(self.is_adapter)
         layout_device_control.addWidget(self.is_power_button)
-        # layout_device_control.addWidget(self.is_battery)
         layout_device_control.addWidget(self.is_usb)
         layout_device_control.addWidget(self.usb_tips)
         layout_device_control.addStretch(1)
@@ -103,12 +101,6 @@ class Ui_MainWindow(object):
         self.power_button_config.setDisabled(True)
         layout_COM_config.addWidget(self.power_button_label)
         layout_COM_config.addWidget(self.power_button_config)
-
-        # self.battery_label = QtWidgets.QLabel("电池:")
-        # self.battery_config = QComboBox()
-        # self.battery_config.setDisabled(True)
-        # layout_COM_config.addWidget(self.battery_label)
-        # layout_COM_config.addWidget(self.battery_config)
 
         self.usb_label = QtWidgets.QLabel("USB:")
         self.usb_config = QComboBox()

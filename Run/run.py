@@ -1,8 +1,9 @@
 import time
-from Common import config, image_analysis, camera_operate, keying, m_serial, adb_timer, debug_log
+from Common import image_analysis, camera_operate, keying, m_serial, adb_timer, debug_log
 import os
 from Common.device_check import DeviceCheck
 import configparser
+from Common.config import Config
 
 
 # 检查adb在线
@@ -36,15 +37,15 @@ def check_boot_complete_with_thread(device, timeout=120):
 
 
 if __name__ == '__main__':
-    config = configparser.ConfigParser()
-    config.read('config.ini')
+    conf = Config()
+    configpar = configparser.ConfigParser()
+    configpar.read(conf.config_file_path)
     log = debug_log.MyLog()
-    conf = config.Config()
     analysis = image_analysis.Analysis()
     camera = camera_operate.Camera()
     key_ing = keying.KeyPhoto()
     t_ser = m_serial.SerialD()
-    device_check = DeviceCheck(config.get('Config', "device_name"))
+    device_check = DeviceCheck(configpar.get('Config', "device_name"))
     # 先对设备的时间进行修改，使用网络时间，方便看log
     # 图片处理相关
     origin_logo_logo_img = os.path.join(conf.logo_logo_path, "Logo.png")
@@ -54,7 +55,6 @@ if __name__ == '__main__':
     if os.path.exists(failed_img_path):
         os.remove(failed_img_path)
 
-    log.info("****************开始测试*****************")
     flag = 0
     log.info("*************开关卡logo测试开始****************")
     # 用例说明
@@ -66,86 +66,59 @@ if __name__ == '__main__':
 
     # interval = [i * 4 for i in range(1, 100)]
     # 获取cases
-    cases = config.get('Config', "COM").split(",")
-    if len(cases) == 0:
+    cases = configpar.get('Config', "cases").split(",")
+    if len(cases) == 1:
         while True:
             flag += 1
             # 上下电启动
             try:
-                t_ser.loginSer(config.get('Config', "COM"))
+                t_ser.loginSer(configpar.get('Config', "COM"))
             except Exception as e:
                 log.error("串口已经被占用， 请检查！！！")
                 log.error(str(e))
                 break
             log.info("关机")
-            if config.get('Config', "cases") == "1":
-                if config.get('Config', "adapter_config") == "relay_1":
-                    t_ser.open_first_relay()
-                    time.sleep(1)
-                    t_ser.close_first_relay()
-                elif config.get('Config', "adapter_config") == "relay_2":
-                    t_ser.open_second_relay()
-                    time.sleep(1)
-                    t_ser.close_second_relay()
-                elif config.get('Config', "adapter_config") == "relay_3":
-                    t_ser.open_third_relay()
-                    time.sleep(1)
-                    t_ser.close_third_relay()
-                else:
-                    t_ser.open_fourth_relay()
-                    time.sleep(1)
-                    t_ser.close_fourth_relay()
-            elif config.get('Config', "cases") == "2":
+            if configpar.get('Config', "cases") == "1":
+                num = int(configpar.get('Config', "adapter_config").split("_")[1])
+                t_ser.open_relay(num)
+                log.info("适配器开路")
+                time.sleep(1)
+                t_ser.close_relay(num)
+                log.info("适配器通路")
+            elif configpar.get('Config', "cases") == "2":
                 # 关机
                 device_check.device_shutdown()
-                if config.get('Config', "power_button_config") == "relay_1":
-                    t_ser.open_first_relay()
-                    time.sleep(3)
-                    t_ser.close_first_relay()
-                elif config.get('Config', "power_button_config") == "relay_2":
-                    t_ser.open_second_relay()
-                    time.sleep(3)
-                    t_ser.close_second_relay()
-                elif config.get('Config', "power_button_config") == "relay_3":
-                    t_ser.open_third_relay()
-                    time.sleep(3)
-                    t_ser.close_third_relay()
-                else:
-                    t_ser.open_fourth_relay()
-                    time.sleep(3)
-                    t_ser.close_fourth_relay()
-            # 适配器异常下电111111111111111111111111111111111111111111
-            elif config.get('Config', "cases") == "3":
-                # 关机
-                if config.get('Config', "adapter_power_config") == "relay_1":
-                    # 关机
-                    t_ser.open_first_relay()
+                log.info("指令关机")
+                # 开机
+                num = int(configpar.get('Config', "power_button_config").split("_")[1])
+                t_ser.open_relay(num)
+                log.info("按下电源按键")
+                time.sleep(5)
+                t_ser.close_relay(num)
+                log.info("松开电源按键")
+            # 适配器异常下电
+            elif configpar.get('Config', "cases") == "3":
+                if configpar.get('Config', "adapter_power_config") == "relay_1":
+                    num_adapter_power = int(configpar.get('Config', "power_button_config").split("_")[1])
+                    num_power_button = int(configpar['Config']["power_button_config"].split("_")[1])
+                    # 断开适配器/电池
+                    t_ser.open_relay(num_adapter_power)
+                    log.info("电池/适配器开路")
                     time.sleep(1)
-                    t_ser.close_first_relay()
-                elif config.get('Config', "adapter_power_config") == "relay_2":
-                    t_ser.open_second_relay()
-                    time.sleep(1)
-                    t_ser.close_second_relay()
-                elif config.get('Config', "adapter_power_config") == "relay_3":
-                    t_ser.open_third_relay()
-                    time.sleep(1)
-                    t_ser.close_third_relay()
-                else:
-                    t_ser.open_fourth_relay()
-                    time.sleep(1)
-                    t_ser.close_fourth_relay()
+                    # 闭合适配器 / 电池
+                    t_ser.close_relay(num_adapter_power)
+                    log.info("电池/适配器通路")
+                    # 按下电源按键开机
+                    t_ser.open_relay(num_power_button)
+                    log.info("按下电源健")
+                    time.sleep(5)
+                    t_ser.open_relay(num_power_button)
+                    log.info("松开电源按键")
 
-
-
-            # t_ser.send_ser_disconnect_cmd()
-            # time.sleep(1)
-            # t_ser.send_ser_connect_cmd()
-            # if not t_ser.confirm_ser_connected():
-            #     break
             log.info("正在开机，请等...")
             # time.sleep(interval[flag])
-            if check_adb_online_with_thread(config.get('Config', "device_name")):
-                if check_boot_complete_with_thread(config.get('Config', "device_name"), timeout=120):
+            if check_adb_online_with_thread(configpar.get('Config', "device_name")):
+                if check_boot_complete_with_thread(configpar.get('Config', "device_name"), timeout=120):
                     log.info("设备完全启动")
                 else:
                     log.info("设备无法完全启动, 请检查!!!")
@@ -188,4 +161,3 @@ if __name__ == '__main__':
 
         # thread.join()
         log.info("停止压测.")
-`

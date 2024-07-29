@@ -27,8 +27,8 @@ DictCommandInfo = {
 
     "A": AllCertCaseValue.ROOT_PROTOCON,
     "适配器开关机": AllCertCaseValue.ROOT_PROTOCON_STA_TMISCAN_B0,
-    "适配器/电池+电源按键--正常关机（指令代替按键关机）": AllCertCaseValue.ROOT_PROTOCON_STA_TMISCAN_B1,
-    "适配器/电池+电源按键--异常关机（适配器/电池开路关机）": AllCertCaseValue.ROOT_PROTOCON_STA_TMISCAN_B2,
+    "适配器/电池+电源按键--正常关机（按键开关机-指令代替按键关机）": AllCertCaseValue.ROOT_PROTOCON_STA_TMISCAN_B1,
+    "适配器/电池+电源按键--异常关机（适配器/电池开路关机-按键开机）": AllCertCaseValue.ROOT_PROTOCON_STA_TMISCAN_B2,
 }
 
 
@@ -101,6 +101,7 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         QMessageBox.warning(self, "错误提示", text)
 
     def handle_submit(self):
+
         # 先删除原来存在的key图片
         if os.path.exists(self.camera_key_path):
             os.remove(self.camera_key_path)
@@ -115,14 +116,9 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
             self.get_message_box("没检测到可用的机器，请检查或者重启界面！！！")
             return
 
-        # 文本框非空检查
-        # if not self.is_1_relay.isChecked() and not self.is_4_relay.isChecked():
-        #     self.get_message_box("请选择继电器种类！！！")
-        #     return
-        #
-        # if not self.is_adapter.isChecked() and not self.is_power_button.isChecked() and not self.is_battery.isChecked() and not self.is_usb.isChecked():
-        #     self.get_message_box("请选择接线方式！！！")
-        #     return
+        if not self.is_adapter.isChecked() and not self.is_power_button.isChecked() and not self.is_usb.isChecked():
+            self.get_message_box("请选择接线方式！！！")
+            return
 
         # 继电器路数不能相同
         config_list = []
@@ -130,8 +126,6 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
             config_list.append(self.adapter_config.currentText())
         if self.power_button_config.isEnabled():
             config_list.append(self.power_button_config.currentText())
-        if self.battery_config.isEnabled():
-            config_list.append(self.battery_config.currentText())
         if self.usb_config.isEnabled():
             config_list.append(self.usb_config.currentText())
         if len(config_list) != len(set(config_list)):
@@ -215,15 +209,6 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
             for line in self.get_COM_config():
                 self.power_button_config.addItem(line)
 
-    def battery_checkbox_change(self):
-        if self.battery_config.isEnabled():
-            self.battery_config.setDisabled(True)
-            self.battery_config.clear()
-        else:
-            self.battery_config.setEnabled(True)
-            for line in self.get_COM_config():
-                self.battery_config.addItem(line)
-
     def usb_checkbox_change(self):
         if self.usb_config.isEnabled():
             self.usb_config.setDisabled(True)
@@ -244,11 +229,6 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         config[section]['cases'] = ",".join(self.cases)
         config[section]['device_name'] = self.edit_device_name.currentText()
         config[section]["COM"] = self.test_COM.currentText()
-        # # 继电器种类
-        # if self.is_1_relay:
-        #     config[section]["relay_type"] = "is_1_relay"
-        # else:
-        #     config[section]["relay_type"] = "is_4_relay"
         # 接线方式
         if self.is_adapter.isChecked():
             config[section]["is_adapter"] = "1"
@@ -258,10 +238,6 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
             config[section]["is_power_button"] = "1"
         else:
             config[section]["is_power_button"] = "0"
-        if self.is_battery.isChecked():
-            config[section]["is_battery"] = "1"
-        else:
-            config[section]["is_battery"] = "0"
         if self.is_usb.isChecked():
             config[section]["is_usb"] = "1"
         else:
@@ -287,16 +263,6 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
                 config[section]["power_button_config"] = "relay_3"
             else:
                 config[section]["power_button_config"] = "relay_4"
-
-        # if self.battery_config.isEnabled():
-        #     if self.battery_config.currentText() == "1路":
-        #         config[section]["battery_config"] = "relay_1"
-        #     elif self.battery_config.currentText() == "2路":
-        #         config[section]["battery_config"] = "relay_2"
-        #     elif self.battery_config.currentText() == "3路":
-        #         config[section]["battery_config"] = "relay_3"
-        #     else:
-        #         config[section]["battery_config"] = "relay_4"
 
         if self.usb_config.isEnabled():
             if self.usb_config.currentText() == "1路":
