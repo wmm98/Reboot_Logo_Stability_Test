@@ -92,7 +92,6 @@ class SerialD:
             ser.write(bytes.fromhex("A0 04 00 A4"))
 
 
-
 if __name__ == '__main__':
     se = SerialD()
     # print(se.COM)
