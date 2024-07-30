@@ -36,7 +36,7 @@ class ADBChecker:
                 self.result = True
 
         except Exception as e:
-            log.error(f"Error occurred during adb check: {e}")
+            log.error("Error occurred during adb check: %s" % str(e))
 
         if not self.result:
             self.timer = threading.Timer(5, self.check_adb)
@@ -53,7 +53,7 @@ class ADBChecker:
         except subprocess.TimeoutExpired:
             pass
         except Exception as e:
-            log.error(f"Error occurred during boot check: {e}")
+            log.error("Error occurred during boot check: %s" % str(e))
 
         if not self.result:
             self.timer = threading.Timer(5, self.check_boot_complete)

@@ -21,8 +21,9 @@ configpar.read(conf.config_file_path)
 def check_adb_online_with_thread(device, timeout=90):
     adb_checker = adb_timer.ADBChecker(device, timeout)
     if configpar.get('Config', "is_usb") == "1":
+        log.info("选了USB")
         adb_checker.usb = True
-        adb_checker.usb_relay = 1
+        adb_checker.usb_relay = int(configpar.get('Config', "usb_config").split("_")[1])
 
     adb_checker.start_check()
     # Wait until timeout or ADB is found
@@ -134,15 +135,11 @@ if __name__ == '__main__':
                     log.info("松开电源按键")
 
                 log.info("正在开机，请等...")
-                # if configpar.get('Config', "is_usb") == "1":
-                #     pass
-                # else:
                 if check_adb_online_with_thread(configpar.get('Config', "device_name")):
                     if check_boot_complete_with_thread(configpar.get('Config', "device_name"), timeout=120):
                         log.info("设备完全启动")
                     else:
                         log.info("设备无法完全启动, 请检查!!!")
-
                 # 拍照
                 time.sleep(60)
                 origin_camera_path = os.path.join(conf.camera_origin_img_path, "Origin.png")
