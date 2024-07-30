@@ -41,3 +41,6 @@ class DeviceCheck:
 
     def logcat(self, log_time):
         self.shell.invoke("adb -s %s logcat -t %d >> %s" % (self.device_name, log_time, Config.system_failed_log_path))
+
+    def adb_btn_open(self):
+        self.shell.invoke("adb -s %s shell setprop persist.telpo.debug.mode 1" % self.device_name)

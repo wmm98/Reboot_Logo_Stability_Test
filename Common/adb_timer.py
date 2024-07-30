@@ -2,13 +2,19 @@ import subprocess
 import threading
 import time
 from Common.device_check import DeviceCheck
+from Common.debug_log import MyLog
+from Common.m_serial import SerialD
 
+log = MyLog()
+ser_ = SerialD()
 
 class ADBChecker:
     def __init__(self, device_name, timeout):
         self.timeout = timeout
         self.timer = None
         self.result = False
+        self.usb = False
+        self.usb_relay = None
         self.device = DeviceCheck(device_name)
 
     def start_check(self, boot=False):
@@ -21,10 +27,16 @@ class ADBChecker:
 
     def check_adb(self):
         try:
+            if self.usb:
+                ser_.open_relay(self.usb_relay)
+                time.sleep(1)
+                ser_.close_relay(self.usb_relay)
+                time.sleep(1)
             if self.device.device_is_online():
                 self.result = True
+
         except Exception as e:
-            print(f"Error occurred during adb check: {e}")
+            log.error(f"Error occurred during adb check: {e}")
 
         if not self.result:
             self.timer = threading.Timer(5, self.check_adb)
@@ -41,7 +53,7 @@ class ADBChecker:
         except subprocess.TimeoutExpired:
             pass
         except Exception as e:
-            print(f"Error occurred during boot check: {e}")
+            log.error(f"Error occurred during boot check: {e}")
 
         if not self.result:
             self.timer = threading.Timer(5, self.check_boot_complete)

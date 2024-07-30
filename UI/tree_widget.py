@@ -13,17 +13,21 @@ class Ui_MainWindow(object):
     logo_key_path = os.path.join(project_path, "Photo", "Logo", "Key", "Key.png")
     camera_key_path = os.path.join(project_path, "Photo", "CameraPhoto", "Key", "Key.png")
     debug_log_path = os.path.join(project_path, "Log", "Debug", "debug_log.txt")
+    # failed_logcat.txt
+    adb_log_path = os.path.join(project_path, "Log", "Logcat", "failed_logcat.txt")
     run_bat_path = os.path.join(project_path, "Run", "bat_run.bat")
     failed_image_key_path = os.path.join(project_path, "Photo", "CameraPhoto", "Key", "Failed.png")
     # 测试前先清除
     if os.path.exists(debug_log_path):
         os.remove(debug_log_path)
+    if os.path.exists(adb_log_path):
+        os.remove(adb_log_path)
     if os.path.exists(logo_key_path):
         os.remove(logo_key_path)
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(1100, 900)
+        MainWindow.resize(1100, 850)
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         # 创建水平布局
         self.main_layout = QHBoxLayout(self.centralwidget)
@@ -50,22 +54,6 @@ class Ui_MainWindow(object):
         self.verticalLayout_left.addLayout(layout_device_info)
         # 间隔
         self.verticalLayout_left.addWidget(QtWidgets.QLabel())
-
-        # 继电器种类
-        # layout_relay_type = QHBoxLayout()
-        # self.relay_type = QtWidgets.QLabel("继电器种类:")
-        # self.is_1_relay = QCheckBox("1路继电器")
-        # self.is_4_relay = QCheckBox("4路继电器")
-        # layout_relay_type.addWidget(self.relay_type)
-        # layout_relay_type.addWidget(self.is_1_relay)
-        # layout_relay_type.addWidget(self.is_4_relay)
-        # layout_relay_type.addStretch(1)
-        # self.verticalLayout_left.addLayout(layout_relay_type)
-        # self.relay_group = QButtonGroup()
-        # self.relay_group.addButton(self.is_1_relay, id=1)
-        # self.relay_group.addButton(self.is_4_relay, id=2)
-        # # 间隔
-        # self.verticalLayout_left.addWidget(QtWidgets.QLabel())
 
         layout_device_control = QHBoxLayout()
         self.boot_way = QtWidgets.QLabel("接线方式:")
@@ -153,6 +141,14 @@ class Ui_MainWindow(object):
         self.stop_process_button = QtWidgets.QPushButton("停止压测")
         self.stop_process_button.setDisabled(True)
         self.verticalLayout_left.addWidget(self.stop_process_button)
+
+        # 下载adb log文件
+        # log_layout = QHBoxLayout()
+        self.download_log_button = QtWidgets.QPushButton("下载ADB Log")
+        self.verticalLayout_left.addWidget(self.download_log_button)
+        # adb log tips
+        self.download_log_tips = QtWidgets.QLabel()
+        self.download_log_tips.setStyleSheet("color: red;")
 
         # 添加左边部分
         # 右侧部件

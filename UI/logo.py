@@ -45,10 +45,11 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         self.cases_selected_sum = 0
 
     def intiui(self):
+        # 初始化进程
+        self.qt_process = QProcess()
         # 用例数结构
         # 设置列数
         self.treeWidget.setColumnCount(1)
-
         # 设置树形控件头部的标题
         self.treeWidget.setHeaderLabels(['测试场景'])
         self.treeWidget.setColumnWidth(0, 120)
@@ -77,9 +78,15 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         self.show_keying_button.clicked.connect(self.show_keying_image)
         self.submit_button.clicked.connect(self.handle_submit)
         self.stop_process_button.clicked.connect(self.stop_process)
+        # 进程完成
+        self.qt_process.finished.connect(self.handle_finished)
+        self.download_log_button.clicked.connect(self.download_adb_file)
 
         # 初始化图片cursor
         self.cursor = QTextCursor(self.document)
+
+    def handle_finished(self):
+        self.stop_process()
 
     # 获取所有节点的状态
     def get_tree_item_status(self, tree_item):
@@ -101,7 +108,6 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         QMessageBox.warning(self, "错误提示", text)
 
     def handle_submit(self):
-
         # 先删除原来存在的key图片
         if os.path.exists(self.camera_key_path):
             os.remove(self.camera_key_path)
@@ -302,7 +308,6 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         self.file_timer.stop()
 
     def start_qt_process(self, file):
-        self.qt_process = QProcess()
         # 启动 外部 脚本
         self.qt_process.start(file)
 
@@ -432,6 +437,28 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         self.image_edit.insertPlainText("\n")
         self.cursor.insertImage(image_format)
         self.image_edit.insertPlainText("\n")
+
+    def download_adb_file(self):
+        if not self.stop_process_button.isEnabled():
+            # 选择源文件
+            source_file = self.adb_log_path
+            if not os.path.exists(source_file):
+                self.get_message_box("不存在adb log 文件！！！")
+                return
+
+            # 获取源文件的名字
+            file_name = os.path.basename(source_file)
+
+            # 选择目标保存位置，默认文件名为源文件名
+            target_file, _ = QFileDialog.getSaveFileName(self, 'Save File As', file_name,
+                                                         'Text Files (*.txt);;All Files (*)')
+            if not target_file:
+                return
+
+            self.copy_file(source_file, target_file)
+            self.get_message_box("成功下载adb log文件！")
+        else:
+            self.get_message_box("请等待压测停止再下载adb log！！！")
 
 
 if __name__ == '__main__':
