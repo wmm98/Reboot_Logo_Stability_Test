@@ -1,6 +1,4 @@
-import cv2
 from skimage.metrics import structural_similarity as ssim
-from PIL import Image
 import imagehash
 
 import torch
@@ -31,11 +29,6 @@ class CNNsAnalysis:
         cos_scores = util.pytorch_cos_sim(img1, img2)
         score = round(float(cos_scores[0][0]) * 100, 2)
         return score
-
-
-"""
-目前使用感知哈希算法比对两张图片的距离
-"""
 
 
 class Analysis:
@@ -117,27 +110,6 @@ class Analysis:
         #     print("Images are not similar")
 
         return distance
-
-    # def calculate_dhash(self, image_path):
-    #     """
-    #     计算图像的差异哈希值
-    #     """
-    #     img = Image.open(image_path)
-    #     # 使用 imagehash 库计算差异哈希值
-    #     return imagehash.dhash(img)
-    #
-    # def compare_images(self, image_path1, image_path2):
-    #     """
-    #     比较两张图片的差异哈希值
-    #     """
-    #     hash1 = self.calculate_dhash(image_path1)
-    #     hash2 = self.calculate_dhash(image_path2)
-    #
-    #     # 计算哈希值之间的汉明距离
-    #     hash_distance = hash1 - hash2
-    #
-    #     # 返回相似度（汉明距离越小，图片越相似）
-    #     return hash_distance
 
 
 if __name__ == '__main__':

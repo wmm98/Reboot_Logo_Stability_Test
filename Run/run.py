@@ -4,7 +4,6 @@ import os
 from Common.device_check import DeviceCheck
 import configparser
 from Common.config import Config
-import sys
 
 conf = Config()
 log = debug_log.MyLog()
@@ -161,8 +160,8 @@ if __name__ == '__main__':
                     log.error("当前认为复现了卡logo情景，请检查！！！")
                     if device_check.device_is_online():
                         log.info("设备在线")
-                        device_check.logcat(10)
-                        log.info("成功捕捉了 adb log")
+                        device_check.logcat(int(configpar.get('Config', 'logcat_duration')) * 60)
+                        log.info("成功捕捉了%s 分钟 adb log" % configpar.get('Config', 'logcat_duration'))
                         log.info("任务结束")
                     else:
                         log.info("设备不在线")

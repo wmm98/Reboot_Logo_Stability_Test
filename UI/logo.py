@@ -70,6 +70,7 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         # 链槽
         self.select_devices_name()
         self.list_COM()
+        self.list_logcat_duration()
         self.is_adapter.clicked.connect(self.adapter_checkbox_change)
         # self.is_battery.clicked.connect(self.battery_checkbox_change)
         self.is_power_button.clicked.connect(self.power_button_checkbox_change)
@@ -235,6 +236,8 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         config[section]['cases'] = ",".join(self.cases)
         config[section]['device_name'] = self.edit_device_name.currentText()
         config[section]["COM"] = self.test_COM.currentText()
+        config[section]["logcat_duration"] = self.adb_log_duration.currentText()
+
         # 接线方式
         if self.is_adapter.isChecked():
             config[section]["is_adapter"] = "1"
@@ -363,6 +366,12 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
             return serial_list
         else:
             return []
+
+    def list_logcat_duration(self):
+        duration = [10, 20, 30, 40, 50, 60]
+        for dur in duration:
+            self.adb_log_duration.addItem(str(dur))
+        self.adb_log_duration.setCurrentText("30")
 
     def select_devices_name(self):
         devices_info = self.invoke("adb devices").split("\r\n")[1:-2]

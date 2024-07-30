@@ -46,10 +46,15 @@ class Ui_MainWindow(object):
         # 测试COM
         self.COM_tips = QtWidgets.QLabel("测试COM口:")
         self.test_COM = QComboBox()
+        # adb log 时长
+        self.adb_log_lable = QtWidgets.QLabel("Logcat时长(min):")
+        self.adb_log_duration = QComboBox()
         layout_device_info.addWidget(self.label_device_name)
         layout_device_info.addWidget(self.edit_device_name)
         layout_device_info.addWidget(self.COM_tips)
         layout_device_info.addWidget(self.test_COM)
+        layout_device_info.addWidget(self.adb_log_lable)
+        layout_device_info.addWidget(self.adb_log_duration)
         layout_device_info.addStretch(1)
         self.verticalLayout_left.addLayout(layout_device_info)
         # 间隔
