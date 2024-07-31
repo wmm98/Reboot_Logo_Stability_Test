@@ -139,6 +139,8 @@ if __name__ == '__main__':
                         log.info("设备完全启动")
                     else:
                         log.info("设备无法完全启动, 请检查!!!")
+                else:
+                    log.info("没检测到设备在线!!!")
                 # 拍照
                 time.sleep(60)
                 origin_camera_path = os.path.join(conf.camera_origin_img_path, "Origin.png")

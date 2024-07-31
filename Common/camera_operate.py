@@ -1,6 +1,9 @@
 import cv2
 import time
 from Common.config import Config
+from Common.debug_log import MyLog
+
+log = MyLog()
 
 
 class Camera:
@@ -25,11 +28,16 @@ class Camera:
 
         # 检查图像是否成功读取
         if not ret:
-            print("无法从摄像头捕获图像")
+            log.info("无法从摄像头捕获图像")
         else:
             # 保存图像到当前目录下，文件名为 image1.jpg
             cv2.imwrite(photo_path, frame)
-            print("照片已保存")
+            log.info("照片已保存")
 
         # 释放摄像头资源
         camera.release()
+
+
+if __name__ == '__main__':
+    camera = Camera()
+    camera.take_photo("others.png")
