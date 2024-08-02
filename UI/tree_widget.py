@@ -12,6 +12,7 @@ class Ui_MainWindow(object):
     logo_take_path = os.path.join(project_path, "Photo", "Logo", "Logo", "Logo.png")
     logo_key_path = os.path.join(project_path, "Photo", "Logo", "Key", "Key.png")
     camera_key_path = os.path.join(project_path, "Photo", "CameraPhoto", "Key", "Key.png")
+    camera2_key_path = os.path.join(project_path, "Photo", "CameraPhoto", "Key", "Key2.png")
     debug_log_path = os.path.join(project_path, "Log", "Debug", "debug_log.txt")
     # failed_logcat.txt
     adb_log_path = os.path.join(project_path, "Log", "Logcat", "failed_logcat.txt")
@@ -49,6 +50,7 @@ class Ui_MainWindow(object):
         # adb log 时长
         self.adb_log_lable = QtWidgets.QLabel("Logcat时长(min):")
         self.adb_log_duration = QComboBox()
+
         layout_device_info.addWidget(self.label_device_name)
         layout_device_info.addWidget(self.edit_device_name)
         layout_device_info.addWidget(self.COM_tips)
@@ -76,7 +78,6 @@ class Ui_MainWindow(object):
         layout_device_control.addStretch(1)
         # 将水平布局放入垂直布局
         self.verticalLayout_left.addLayout(layout_device_control)
-
         # 间隔
         self.verticalLayout_left.addWidget(QtWidgets.QLabel())
 
@@ -105,6 +106,27 @@ class Ui_MainWindow(object):
         layout_COM_config.addStretch(1)
         self.verticalLayout_left.addLayout(layout_COM_config)
         self.verticalLayout_left.addWidget(self.config_tips)
+        # 间隔
+        self.verticalLayout_left.addWidget(QtWidgets.QLabel())
+
+        other_layout_device_info = QHBoxLayout()
+        self.other_device_info = QtWidgets.QLabel("其他配置:")
+        self.double_screen = QCheckBox("双屏")
+        # 按键开机时长
+        self.button_boot_lable = QtWidgets.QLabel("按键开机时长(sec):")
+        self.button_boot_time = QComboBox()
+        self.button_boot_time.setDisabled(True)
+        self.button_boot_tips = QtWidgets.QLabel("手持按键开机建议6s,收银机时间相对短")
+        self.button_boot_tips.setStyleSheet("color: blue;")
+        other_layout_device_info.addWidget(self.other_device_info)
+        other_layout_device_info.addWidget(self.double_screen)
+        other_layout_device_info.addWidget(self.button_boot_lable)
+        other_layout_device_info.addWidget(self.button_boot_time)
+        other_layout_device_info.addWidget(self.button_boot_tips)
+
+        other_layout_device_info.addStretch(1)
+        self.verticalLayout_left.addLayout(other_layout_device_info)
+
         # 间隔
         self.verticalLayout_left.addWidget(QtWidgets.QLabel())
 

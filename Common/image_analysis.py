@@ -113,10 +113,5 @@ class Analysis:
 
 
 if __name__ == '__main__':
-    # analyse = Analysis()
-    # print(analyse.get_similarity("Key1.png", "Key2.png"))
-
-    # print(f"similarity Score: ", round(generateScore("M8.png", "Key2.png"), 2))
-
-    # image processing model
-    pass
+    cnn = CNNsAnalysis()
+    print(cnn.generateScore("0_new.png", "1_new.png"))

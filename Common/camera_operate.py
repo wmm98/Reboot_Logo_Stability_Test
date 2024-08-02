@@ -40,4 +40,4 @@ class Camera:
 
 if __name__ == '__main__':
     camera = Camera()
-    camera.take_photo("others.png")
+    camera.take_photo("11.png", 1)

@@ -72,7 +72,6 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         self.list_COM()
         self.list_logcat_duration()
         self.is_adapter.clicked.connect(self.adapter_checkbox_change)
-        # self.is_battery.clicked.connect(self.battery_checkbox_change)
         self.is_power_button.clicked.connect(self.power_button_checkbox_change)
         self.is_usb.clicked.connect(self.usb_checkbox_change)
         self.logo_upload_button.clicked.connect(self.upload_reboot_logo)
@@ -112,6 +111,8 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         # 先删除原来存在的key图片
         if os.path.exists(self.camera_key_path):
             os.remove(self.camera_key_path)
+        if os.path.exists(self.camera2_key_path):
+            os.remove(self.camera2_key_path)
         # 初始化log文件
         with open(self.debug_log_path, "w") as f:
             f.close()
@@ -211,10 +212,17 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         if self.power_button_config.isEnabled():
             self.power_button_config.setDisabled(True)
             self.power_button_config.clear()
+            # 不显示开机时长
+            self.button_boot_time.setDisabled(True)
+            self.button_boot_time.clear()
         else:
             self.power_button_config.setEnabled(True)
             for line in self.get_COM_config():
                 self.power_button_config.addItem(line)
+            # 显示开机时长
+            self.button_boot_time.setEnabled(True)
+            for duration in [3, 5, 7, 10]:
+                self.button_boot_time.addItem(str(duration))
 
     def usb_checkbox_change(self):
         if self.usb_config.isEnabled():
@@ -282,6 +290,15 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
                 config[section]["usb_config"] = "relay_3"
             else:
                 config[section]["usb_config"] = "relay_4"
+
+        # 其他配置信息
+        if self.double_screen.isChecked():
+            config[section]["double_screen_config"] = "1"
+        else:
+            config[section]["double_screen_config"] = "0"
+
+        if self.button_boot_time.isEnabled():
+            config[section]["button_boot_time"] = self.button_boot_time.currentText()
 
         with open(file_name, 'w') as configfile:
             config.write(configfile)
@@ -396,7 +413,7 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         self.key_photo()
         pixmap = QPixmap(self.logo_key_path)
         if not pixmap.isNull():
-            scaled_pixmap = pixmap.scaled(439, 250)
+            scaled_pixmap = pixmap.scaled(439, 230)
             self.exp_image_label.setPixmap(scaled_pixmap)
 
     def key_photo(self):
@@ -433,6 +450,15 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         # 创建 QTextImageFormat 对象
         self.image_edit.clear()
         image_format = QTextImageFormat()
+
+        if self.double_screen.isChecked():
+            image2_url = QUrl.fromLocalFile(self.camera2_key_path)
+            self.document.addResource(QTextDocument.ImageResource, image2_url, image2_url)
+            image_format.setName(image2_url.toString())
+            image_format.setWidth(self.image_width)
+            image_format.setHeight(self.image_height)
+            self.cursor.insertImage(image_format)
+
         image_url = QUrl.fromLocalFile(self.camera_key_path)
         # 添加图片资源到 QTextDocument
         self.document.addResource(QTextDocument.ImageResource, image_url, image_url)
@@ -445,7 +471,7 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         # 插入图片到 QTextDocument
         self.image_edit.insertPlainText("\n")
         self.cursor.insertImage(image_format)
-        self.image_edit.insertPlainText("\n")
+        # self.image_edit.insertPlainText("\n")
 
     def download_adb_file(self):
         if not self.stop_process_button.isEnabled():
