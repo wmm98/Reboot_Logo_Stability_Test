@@ -111,21 +111,24 @@ class Ui_MainWindow(object):
 
         other_layout_device_info = QHBoxLayout()
         self.other_device_info = QtWidgets.QLabel("其他配置:")
+        # 只测开关机，不拍照
+        self.only_boot = QCheckBox("只开关机")
+
         self.double_screen = QCheckBox("双屏")
         # 按键开机时长
         self.button_boot_lable = QtWidgets.QLabel("按键开机时长(sec):")
         self.button_boot_time = QComboBox()
         self.button_boot_time.setDisabled(True)
-        self.button_boot_tips = QtWidgets.QLabel("手持按键开机建议6s,收银机时间相对短")
-        self.button_boot_tips.setStyleSheet("color: blue;")
         other_layout_device_info.addWidget(self.other_device_info)
+        other_layout_device_info.addWidget(self.only_boot)
         other_layout_device_info.addWidget(self.double_screen)
         other_layout_device_info.addWidget(self.button_boot_lable)
         other_layout_device_info.addWidget(self.button_boot_time)
-        other_layout_device_info.addWidget(self.button_boot_tips)
-
         other_layout_device_info.addStretch(1)
         self.verticalLayout_left.addLayout(other_layout_device_info)
+        self.button_boot_tips = QtWidgets.QLabel("提示：“只测开关机”不进行图片拍照对比，只查看adb是否起来")
+        self.button_boot_tips.setStyleSheet("color: blue;")
+        self.verticalLayout_left.addWidget(self.button_boot_tips)
 
         # 间隔
         self.verticalLayout_left.addWidget(QtWidgets.QLabel())

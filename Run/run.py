@@ -101,7 +101,7 @@ if __name__ == '__main__':
                 elif configpar.get('Config', "cases") == "2":
                     # 关机
                     device_check.device_shutdown()
-                    time.sleep(5)
+                    time.sleep(10)
                     if device_check.device_is_online():
                         raise Exception("指令设备关机失败，请检查！！！")
                     log.info("指令关机")
@@ -134,39 +134,73 @@ if __name__ == '__main__':
                     log.info("松开电源按键")
 
                 log.info("正在开机，请等...")
-                # if check_adb_online_with_thread(configpar.get('Config', "device_name")):
-                #     if check_boot_complete_with_thread(configpar.get('Config', "device_name"), timeout=120):
-                #         log.info("设备完全启动")
-                #     else:
-                #         log.info("设备无法完全启动, 请检查!!!")
-                # else:
-                #     log.info("没检测到设备在线!!!")
-                # 拍照
-                time.sleep(60)
-                # time.sleep(interval[flag])
-                origin_camera_path = os.path.join(conf.camera_origin_img_path, "Origin.png")
-                # 双屏情况
-                origin_camera2_path = os.path.join(conf.camera_origin_img_path, "Origin2.png")
-                if os.path.exists(origin_camera_path):
-                    os.remove(origin_camera_path)
-                if os.path.exists(origin_camera2_path):
-                    os.remove(origin_camera2_path)
+                if check_adb_online_with_thread(configpar.get('Config', "device_name")):
+                    if check_boot_complete_with_thread(configpar.get('Config', "device_name"), timeout=120):
+                        log.info("设备完全启动")
+                    else:
+                        log.info("设备无法完全启动, 请检查!!!")
+                        if configpar['Config']["only_boot_config"] == "1":
+                            log.error("当前认为复现了卡logo情景，请检查！！！")
+                            time.sleep(3)
+                            break
+                else:
+                    log.error("没检测到设备在线!!!")
+                    if configpar['Config']["only_boot_config"] == "1":
+                        log.error("当前认为复现了卡logo情景，请检查！！！")
+                        time.sleep(3)
+                        break
+                if configpar['Config']["only_boot_config"] == "0":
+                    # 拍照
+                    time.sleep(60)
+                    # time.sleep(interval[flag])
+                    origin_camera_path = os.path.join(conf.camera_origin_img_path, "Origin.png")
+                    # 双屏情况
+                    origin_camera2_path = os.path.join(conf.camera_origin_img_path, "Origin2.png")
+                    if os.path.exists(origin_camera_path):
+                        os.remove(origin_camera_path)
+                    if os.path.exists(origin_camera2_path):
+                        os.remove(origin_camera2_path)
 
-                # 单双屏情况
-                if configpar['Config']["double_screen_config"] == "1":
-                    camera.take_photo(origin_camera_path, camera_id=1)
-                    log.info("镜头2拍照完成")
+                    # 单双屏情况
+                    if configpar['Config']["double_screen_config"] == "1":
+                        camera.take_photo(origin_camera_path, camera_id=1)
+                        log.info("镜头2拍照完成")
+                        # 抠图
+                        log.info("抠图中， 请等待")
+                        camera2_key_img_path = os.path.join(conf.camera_key_img_path, "Key2.png")
+                        if os.path.exists(camera2_key_img_path):
+                            os.remove(camera2_key_img_path)
+                        key_ing.save_key_photo(origin_camera_path, camera2_key_img_path)
+                        log.info("抠图完成")
+
+                        score2 = cnns.generateScore(origin_logo_key_img, camera2_key_img_path)
+                        log.info("当前相似度分数为：%s" % str(score2))
+                        if score2 < 75:
+                            log.error("当前认为复现了卡logo情景，请检查！！！")
+                            if device_check.device_is_online():
+                                log.info("设备在线")
+                                device_check.logcat(int(configpar.get('Config', 'logcat_duration')) * 60)
+                                log.info("成功捕捉了%s 分钟 adb log" % configpar.get('Config', 'logcat_duration'))
+                                log.info("任务结束")
+                            else:
+                                log.info("设备不在线")
+                                log.info("任务结束")
+                            time.sleep(3)
+                            break
+
+                    camera.take_photo(origin_camera_path)
+                    log.info("镜头1拍照完成")
                     # 抠图
                     log.info("抠图中， 请等待")
-                    camera2_key_img_path = os.path.join(conf.camera_key_img_path, "Key2.png")
-                    if os.path.exists(camera2_key_img_path):
-                        os.remove(camera2_key_img_path)
-                    key_ing.save_key_photo(origin_camera_path, camera2_key_img_path)
+                    camera_key_img_path = os.path.join(conf.camera_key_img_path, "Key.png")
+                    if os.path.exists(camera_key_img_path):
+                        os.remove(camera_key_img_path)
+                    key_ing.save_key_photo(origin_camera_path, camera_key_img_path)
                     log.info("抠图完成")
 
-                    score2 = cnns.generateScore(origin_logo_key_img, camera2_key_img_path)
-                    log.info("当前相似度分数为：%s" % str(score2))
-                    if score2 < 75:
+                    score = cnns.generateScore(origin_logo_key_img, camera_key_img_path)
+                    log.info("当前相似度分数为：%s" % str(score))
+                    if score < 75:
                         log.error("当前认为复现了卡logo情景，请检查！！！")
                         if device_check.device_is_online():
                             log.info("设备在线")
@@ -178,31 +212,6 @@ if __name__ == '__main__':
                             log.info("任务结束")
                         time.sleep(3)
                         break
-
-                camera.take_photo(origin_camera_path)
-                log.info("镜头1拍照完成")
-                # 抠图
-                log.info("抠图中， 请等待")
-                camera_key_img_path = os.path.join(conf.camera_key_img_path, "Key.png")
-                if os.path.exists(camera_key_img_path):
-                    os.remove(camera_key_img_path)
-                key_ing.save_key_photo(origin_camera_path, camera_key_img_path)
-                log.info("抠图完成")
-
-                score = cnns.generateScore(origin_logo_key_img, camera_key_img_path)
-                log.info("当前相似度分数为：%s" % str(score))
-                if score < 75:
-                    log.error("当前认为复现了卡logo情景，请检查！！！")
-                    if device_check.device_is_online():
-                        log.info("设备在线")
-                        device_check.logcat(int(configpar.get('Config', 'logcat_duration')) * 60)
-                        log.info("成功捕捉了%s 分钟 adb log" % configpar.get('Config', 'logcat_duration'))
-                        log.info("任务结束")
-                    else:
-                        log.info("设备不在线")
-                        log.info("任务结束")
-                    time.sleep(3)
-                    break
 
                 t_ser.logoutSer()
                 log.info("*******************压测完成%d次********************" % flag)

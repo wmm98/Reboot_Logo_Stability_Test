@@ -81,6 +81,7 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         # 进程完成
         self.qt_process.finished.connect(self.handle_finished)
         self.download_log_button.clicked.connect(self.download_adb_file)
+        self.only_boot.clicked.connect(self.only_boot_checkbox_change)
 
         # 初始化图片cursor
         self.cursor = QTextCursor(self.document)
@@ -139,21 +140,22 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         if len(config_list) != len(set(config_list)):
             self.get_message_box("接线配置有相同，请检查！！！")
             return
+        # 如果只测开关机，不进行图片比对
+        if not self.only_boot.isChecked():
+            if len(self.logo_path_edit.text()) == 0:
+                self.get_message_box("请上传开机logo！！！")
+                return
 
-        if len(self.logo_path_edit.text()) == 0:
-            self.get_message_box("请上传开机logo！！！")
-            return
+            # # 检查文件是否存在
+            reboot_logo_path = self.logo_path_edit.text().strip()
+            if not os.path.exists(reboot_logo_path):
+                self.get_message_box("文件路径：%s不存在" % reboot_logo_path)
+                return
 
-        # # 检查文件是否存在
-        reboot_logo_path = self.logo_path_edit.text().strip()
-        if not os.path.exists(reboot_logo_path):
-            self.get_message_box("文件路径：%s不存在" % reboot_logo_path)
-            return
-
-        # 检查是否抠图了
-        if not os.path.exists(self.logo_key_path):
-            self.get_message_box("请抠图检查图片是否完整！！！")
-            return
+            # 检查是否抠图了
+            if not os.path.exists(self.logo_key_path):
+                self.get_message_box("请抠图检查图片是否完整！！！")
+                return
 
         # 检查用例是否为空
         self.tree_status = []
@@ -198,6 +200,16 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
         self.stop_process_button.setEnabled(True)
         self.submit_button.setDisabled(True)
         self.submit_button.setText("测试中...")
+
+    def only_boot_checkbox_change(self):
+        if self.only_boot.isChecked():
+            self.double_screen.setDisabled(True)
+            self.logo_upload_button.setDisabled(True)
+            self.show_keying_button.setDisabled(True)
+        else:
+            self.double_screen.setEnabled(True)
+            self.logo_upload_button.setEnabled(True)
+            self.show_keying_button.setEnabled(True)
 
     def adapter_checkbox_change(self):
         if self.adapter_config.isEnabled():
@@ -292,6 +304,11 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
                 config[section]["usb_config"] = "relay_4"
 
         # 其他配置信息
+        if self.only_boot.isChecked():
+            config[section]["only_boot_config"] = "1"
+        else:
+            config[section]["only_boot_config"] = "0"
+
         if self.double_screen.isChecked():
             config[section]["double_screen_config"] = "1"
         else:
