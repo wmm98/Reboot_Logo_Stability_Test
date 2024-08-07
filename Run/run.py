@@ -220,5 +220,4 @@ if __name__ == '__main__':
     except Exception as e:
         log.info(str(e))
 
-    # thread.join()
     log.info("停止压测.")
