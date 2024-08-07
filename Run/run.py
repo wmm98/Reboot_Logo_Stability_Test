@@ -66,10 +66,10 @@ if __name__ == '__main__':
         os.remove(failed_img_path)
 
     flag = 0
-    log.info("*************开关卡logo测试开始****************")
+    log.info("*************开关机卡logo测试开始****************")
     # 用例说明
     """
-    1 适配器开关机用例
+    1 适配器开关机（适配器闭合开路开关机）
     2 适配器/电池+电源按键--正常关机（指令关机）
     3 适配器/电池+电源按键--异常关机（适配器开路关机）
     """
@@ -102,6 +102,7 @@ if __name__ == '__main__':
                     # 关机
                     device_check.device_shutdown()
                     time.sleep(10)
+                    device_check.restart_adb()
                     if device_check.device_is_online():
                         raise Exception("指令设备关机失败，请检查！！！")
                     log.info("指令关机")
