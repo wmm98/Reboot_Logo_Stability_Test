@@ -1,5 +1,8 @@
 import subprocess
 from Common.config import Config
+from Common.debug_log import MyLog
+
+log = MyLog()
 
 
 class Shell:
@@ -26,7 +29,7 @@ class DeviceCheck:
 
     def device_is_online(self):
         devices = self.shell.invoke("adb devices")
-        # log.info(device_check.device_is_online())
+        log.info(devices)
         if self.device_name + "device" in devices.replace('\r', '').replace('\t', '').replace(' ', ''):
             return True
         else:
@@ -43,4 +46,4 @@ class DeviceCheck:
         self.shell.invoke("adb -s %s logcat -t %d >> %s" % (self.device_name, log_time, Config.system_failed_log_path))
 
     def adb_btn_open(self):
-        self.shell.invoke("adb -s %s shell setprop persist.telpo.debug.mode 1" % self.device_name)
+        self.shell.invoke("adb -s %s shell \"setprop persist.telpo.debug.mode 1\"" % self.device_name)

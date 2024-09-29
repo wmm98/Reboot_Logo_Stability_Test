@@ -32,7 +32,7 @@ class ADBChecker:
                 ser_.open_relay(self.usb_relay)
                 time.sleep(1)
                 ser_.close_relay(self.usb_relay)
-                time.sleep(1)
+                time.sleep(3)
             if self.device.device_is_online():
                 self.result = True
 

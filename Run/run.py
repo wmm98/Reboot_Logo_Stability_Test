@@ -85,7 +85,7 @@ if __name__ == '__main__':
                 try:
                     t_ser.loginSer(configpar.get('Config', "COM"))
                 except Exception as e:
-                    log.error("串口已经被占用， 请检查！！！")
+                    # log.error("串口已经被占用， 请检查！！！")
                     log.error(str(e))
                     break
                 log.info("关机")
@@ -94,6 +94,7 @@ if __name__ == '__main__':
                     t_ser.open_relay(num)
                     log.info("适配器开路")
                     time.sleep(1)
+                    device_check.restart_adb()
                     if device_check.device_is_online():
                         raise Exception("设备关机失败，请接线是否正确！！！")
                     t_ser.close_relay(num)
@@ -121,6 +122,7 @@ if __name__ == '__main__':
                     t_ser.open_relay(num_adapter_power)
                     log.info("电池/适配器开路")
                     time.sleep(1)
+                    device_check.restart_adb()
                     if device_check.device_is_online():
                         raise Exception("设备关机失败，请检查接线是否正确！！！")
                     # 闭合适配器 / 电池
@@ -133,7 +135,7 @@ if __name__ == '__main__':
                     time.sleep(int(configpar.get('Config', 'button_boot_time')))
                     t_ser.close_relay(num_power_button)
                     log.info("松开电源按键")
-
+                device_check.restart_adb()
                 log.info("正在开机，请等...")
                 if check_adb_online_with_thread(configpar.get('Config', "device_name")):
                     if check_boot_complete_with_thread(configpar.get('Config', "device_name"), timeout=120):
@@ -213,6 +215,8 @@ if __name__ == '__main__':
                             log.info("任务结束")
                         time.sleep(3)
                         break
+                else:
+                    time.sleep(60)
 
                 t_ser.logoutSer()
                 log.info("*******************压测完成%d次********************" % flag)
