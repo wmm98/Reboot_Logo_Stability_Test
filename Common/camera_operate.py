@@ -16,7 +16,7 @@ class Camera:
 
         # 设置曝光参数
         camera.set(cv2.CAP_PROP_AUTO_EXPOSURE, 0)  # 关闭自动曝光
-        camera.set(cv2.CAP_PROP_EXPOSURE, -8)  # 设置曝光值，具体数值需要根据摄像头和环境调整
+        camera.set(cv2.CAP_PROP_EXPOSURE, -3)  # 设置曝光值，具体数值需要根据摄像头和环境调整
 
         # 设置摄像头的分辨率
         camera.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
@@ -40,4 +40,4 @@ class Camera:
 
 if __name__ == '__main__':
     camera = Camera()
-    camera.take_photo("11.png", 1)
+    camera.take_photo("12.png", 0)

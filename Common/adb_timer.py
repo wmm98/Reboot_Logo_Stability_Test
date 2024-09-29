@@ -8,6 +8,7 @@ from Common.m_serial import SerialD
 log = MyLog()
 ser_ = SerialD()
 
+
 class ADBChecker:
     def __init__(self, device_name, timeout):
         self.timeout = timeout

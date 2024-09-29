@@ -122,7 +122,7 @@ class UIDisplay(QtWidgets.QMainWindow, Ui_MainWindow):
             self.get_message_box("没检测到可用的机器，请检查或者重启界面！！！")
             return
         if len(self.test_COM.currentText()) == 0:
-            self.get_message_box("没检测到可用的机器，请检查或者重启界面！！！")
+            self.get_message_box("没检测到可用的COM口，请检查或者重启界面！！！")
             return
 
         if not self.is_adapter.isChecked() and not self.is_power_button.isChecked() and not self.is_usb.isChecked():
