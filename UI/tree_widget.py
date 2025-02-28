@@ -2,29 +2,21 @@ import os
 from PyQt5 import QtCore, QtWidgets
 from PyQt5.QtWidgets import QHBoxLayout, QCheckBox, QComboBox, QButtonGroup, QWidget, QSplitter,  QTextEdit
 from PyQt5.QtCore import pyqtSlot
+from Common.config import Config
 
 
 class Ui_MainWindow(object):
     options = QtWidgets.QFileDialog.Options()
     options |= QtWidgets.QFileDialog.ReadOnly
     project_path = path_dir = str(os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir)))
-    config_file_path = os.path.join(project_path, "UI", "config.ini")
-    logo_take_path = os.path.join(project_path, "Photo", "Logo", "Logo", "Logo.png")
-    logo_key_path = os.path.join(project_path, "Photo", "Logo", "Key", "Key.png")
-    camera_key_path = os.path.join(project_path, "Photo", "CameraPhoto", "Key", "Key.png")
-    camera2_key_path = os.path.join(project_path, "Photo", "CameraPhoto", "Key", "Key2.png")
-    debug_log_path = os.path.join(project_path, "Log", "Debug", "debug_log.txt")
-    # failed_logcat.txt
-    adb_log_path = os.path.join(project_path, "Log", "Logcat", "failed_logcat.txt")
-    run_bat_path = os.path.join(project_path, "Run", "bat_run.bat")
-    failed_image_key_path = os.path.join(project_path, "Photo", "CameraPhoto", "Key", "Failed.png")
+
     # 测试前先清除
-    if os.path.exists(debug_log_path):
-        os.remove(debug_log_path)
-    if os.path.exists(adb_log_path):
-        os.remove(adb_log_path)
-    if os.path.exists(logo_key_path):
-        os.remove(logo_key_path)
+    if os.path.exists(Config.debug_log_path):
+        os.remove(Config.debug_log_path)
+    if os.path.exists(Config.adb_log_path):
+        os.remove(Config.adb_log_path)
+    if os.path.exists(Config.logo_key_path):
+        os.remove(Config.logo_key_path)
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
@@ -168,14 +160,14 @@ class Ui_MainWindow(object):
         self.submit_button = QtWidgets.QPushButton("开始压测")
         self.verticalLayout_left.addWidget(self.submit_button)
 
-        self.stop_process_button = QtWidgets.QPushButton("停止压测")
-        self.stop_process_button.setDisabled(True)
-        self.verticalLayout_left.addWidget(self.stop_process_button)
+        self.stop_thread_button = QtWidgets.QPushButton("停止压测")
+        self.stop_thread_button.setDisabled(True)
+        self.verticalLayout_left.addWidget(self.stop_thread_button)
 
         # 下载adb log文件
         # log_layout = QHBoxLayout()
-        self.download_log_button = QtWidgets.QPushButton("下载ADB Log")
-        self.verticalLayout_left.addWidget(self.download_log_button)
+        # self.download_log_button = QtWidgets.QPushButton("下载ADB Log")
+        # self.verticalLayout_left.addWidget(self.download_log_button)
         # adb log tips
         self.download_log_tips = QtWidgets.QLabel()
         self.download_log_tips.setStyleSheet("color: red;")

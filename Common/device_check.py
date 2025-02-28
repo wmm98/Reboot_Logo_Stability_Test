@@ -1,8 +1,5 @@
 import subprocess
 from Common.config import Config
-from Common.debug_log import MyLog
-
-log = MyLog()
 
 
 class Shell:
@@ -29,7 +26,7 @@ class DeviceCheck:
 
     def device_is_online(self):
         devices = self.shell.invoke("adb devices")
-        log.info(devices)
+        # log.info(device_check.device_is_online())
         if self.device_name + "device" in devices.replace('\r', '').replace('\t', '').replace(' ', ''):
             return True
         else:

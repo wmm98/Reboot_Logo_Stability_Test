@@ -1,19 +1,46 @@
-import time
-from Common import image_analysis, camera_operate, keying, m_serial, adb_timer, debug_log
+
+from Common.config import Config
 import os
+if not os.path.exists(Config.log_base_path):
+    os.mkdir(Config.log_base_path)
+if not os.path.exists(Config.debug_base_path):
+    os.mkdir(Config.debug_base_path)
+if not os.path.exists(Config.logcat_base_path):
+    os.mkdir(Config.logcat_base_path)
+
+if not os.path.exists(Config.photo_path):
+    os.mkdir(Config.photo_path)
+if not os.path.exists(Config.camera_photo_path):
+    os.mkdir(Config.camera_photo_path)
+if not os.path.exists(Config.camera_photo_take_path):
+    os.mkdir(Config.camera_photo_take_path)
+if not os.path.exists(Config.camera_photo_key_path):
+    os.mkdir(Config.camera_photo_key_path)
+if not os.path.exists(Config.logo_path):
+    os.mkdir(Config.logo_path)
+if not os.path.exists(Config.logo_logo_base_path):
+    os.mkdir(Config.logo_logo_base_path)
+if not os.path.exists(Config.logo_key_base_path):
+    os.mkdir(Config.logo_key_base_path)
+
+import time
+from Common import camera_operate, keying, m_serial, adb_timer, debug_log
+
 from Common.device_check import DeviceCheck
 import configparser
-from Common.config import Config
+from Common import AITorch
+
 
 conf = Config()
 log = debug_log.MyLog()
-analysis = image_analysis.Analysis()
-cnns = image_analysis.CNNsAnalysis()
+# analysis = image_analysis.Analysis()
+# cnns = image_analysis.CNNsAnalysis()
+
+cnns = AITorch.SiameseNetworkAnalysis()
 camera = camera_operate.Camera()
 key_ing = keying.KeyPhoto()
 t_ser = m_serial.SerialD()
 configpar = configparser.ConfigParser()
-configpar.read(conf.config_file_path)
 
 
 # 检查adb在线
@@ -50,53 +77,57 @@ def check_boot_complete_with_thread(device, timeout=120):
     return False
 
 
-if __name__ == '__main__':
-    device_check = DeviceCheck(configpar.get('Config', "device_name"))
-
-    # 确认二部机器adb btn 开
-    device_check.adb_btn_open()
-    # 先对设备的时间进行修改，使用网络时间，方便看log
-    # ?
-    # 图片处理相关
-    origin_logo_logo_img = os.path.join(conf.logo_logo_path, "Logo.png")
-    origin_logo_key_img = os.path.join(conf.logo_key_path, "Key.png")
-    # 需要在前端先删除存留的失败照片,调试的时候先在这里删除
-    failed_img_path = os.path.join(conf.camera_key_img_path, "Failed.png")
-    if os.path.exists(failed_img_path):
-        os.remove(failed_img_path)
-
-    flag = 0
-    log.info("*************开关机卡logo测试开始****************")
-    # 用例说明
-    """
-    1 适配器开关机（适配器闭合开路开关机）
-    2 适配器/电池+电源按键--正常关机（指令关机）
-    3 适配器/电池+电源按键--异常关机（适配器开路关机）
-    """
-
-    # interval = [i*2 for i in range(1, 100)]
-    # 获取cases
+def run_script():
     try:
+        configpar.read(conf.config_file_path)
+        device_check = DeviceCheck(configpar.get('Config', "device_name"))
+        # 确认二部机器adb btn 开
+        device_check.adb_btn_open()
+        # 先对设备的时间进行修改，使用网络时间，方便看log
+        # ?
+        # 图片处理相关
+        origin_logo_logo_img = os.path.join(conf.logo_logo_path)
+        origin_logo_key_img = os.path.join(conf.logo_key_path)
+        # 需要在前端先删除存留的失败照片,调试的时候先在这里删除
+        failed_img_path = os.path.join(conf.camera_key_img_path, "Failed.png")
+        if os.path.exists(failed_img_path):
+            os.remove(failed_img_path)
+
+        flag = 0
+        log.info("*************开关机卡logo测试开始****************")
+        # 用例说明
+        """
+        1 适配器开关机（适配器闭合开路开关机）
+        2 适配器/电池+电源按键--正常关机（指令关机）
+        3 适配器/电池+电源按键--异常关机（适配器开路关机）
+        """
+
+        # interval = [i*2 for i in range(1, 100)]
+        # 获取cases
+        # try:
         cases = configpar.get('Config', "cases").split(",")
         if len(cases) == 1:
             while True:
                 flag += 1
                 # 上下电启动
-                try:
-                    t_ser.loginSer(configpar.get('Config', "COM"))
-                except Exception as e:
-                    # log.error("串口已经被占用， 请检查！！！")
-                    log.error(str(e))
-                    break
+                # try:
+                t_ser.loginSer(configpar.get('Config', "COM"))
+                # except Exception as e:
+                #     log.error(str(e))
+                #     break
                 log.info("关机")
                 if configpar.get('Config', "cases") == "1":
-                    num = int(configpar.get('Config', "adapter_config").split("_")[1])
+                    num = int(configpar.get('Config', "adapter_power_config").split("_")[1])
                     t_ser.open_relay(num)
                     log.info("适配器开路")
                     time.sleep(1)
                     device_check.restart_adb()
+                    time.sleep(8)
                     if device_check.device_is_online():
-                        raise Exception("设备关机失败，请接线是否正确！！！")
+                        log.info("设备关机失败,下一次循环！！！")
+                        t_ser.logoutSer()
+                        continue
+                    log.info("设备关机成功")
                     t_ser.close_relay(num)
                     log.info("适配器通路")
                 elif configpar.get('Config', "cases") == "2":
@@ -104,8 +135,11 @@ if __name__ == '__main__':
                     device_check.device_shutdown()
                     time.sleep(10)
                     device_check.restart_adb()
+                    time.sleep(6)
                     if device_check.device_is_online():
-                        raise Exception("指令设备关机失败，请检查！！！")
+                        log.info("设备关机失败,下一次循环！！！")
+                        t_ser.logoutSer()
+                        continue
                     log.info("指令关机")
                     # 开机
                     num = int(configpar.get('Config', "power_button_config").split("_")[1])
@@ -123,8 +157,11 @@ if __name__ == '__main__':
                     log.info("电池/适配器开路")
                     time.sleep(1)
                     device_check.restart_adb()
+                    time.sleep(6)
                     if device_check.device_is_online():
-                        raise Exception("设备关机失败，请检查接线是否正确！！！")
+                        log.info("设备关机失败,下一次循环！！！")
+                        t_ser.logoutSer()
+                        continue
                     # 闭合适配器 / 电池
                     t_ser.close_relay(num_adapter_power)
                     log.info("电池/适配器通路")
@@ -135,17 +172,18 @@ if __name__ == '__main__':
                     time.sleep(int(configpar.get('Config', 'button_boot_time')))
                     t_ser.close_relay(num_power_button)
                     log.info("松开电源按键")
-                device_check.restart_adb()
+
                 log.info("正在开机，请等...")
                 if check_adb_online_with_thread(configpar.get('Config', "device_name")):
-                    if check_boot_complete_with_thread(configpar.get('Config', "device_name"), timeout=120):
-                        log.info("设备完全启动")
-                    else:
-                        log.info("设备无法完全启动, 请检查!!!")
-                        if configpar['Config']["only_boot_config"] == "1":
-                            log.error("当前认为复现了卡logo情景，请检查！！！")
-                            time.sleep(3)
-                            break
+                    log.info("设备ADB在线")
+                    # if check_boot_complete_with_thread(configpar.get('Config', "device_name"), timeout=120):
+                    #     log.info("设备完全启动")
+                    # else:
+                    #     log.info("设备无法完全启动, 请检查!!!")
+                    #     if configpar['Config']["only_boot_config"] == "1":
+                    #         log.error("当前认为复现了卡logo情景，请检查！！！")
+                    #         time.sleep(3)
+                    #         break
                 else:
                     log.error("没检测到设备在线!!!")
                     if configpar['Config']["only_boot_config"] == "1":
@@ -154,7 +192,9 @@ if __name__ == '__main__':
                         break
                 if configpar['Config']["only_boot_config"] == "0":
                     # 拍照
+                    log.info("等待1分钟机器启动完成..")
                     time.sleep(60)
+
                     # time.sleep(interval[flag])
                     origin_camera_path = os.path.join(conf.camera_origin_img_path, "Origin.png")
                     # 双屏情况
@@ -178,8 +218,8 @@ if __name__ == '__main__':
 
                         score2 = cnns.generateScore(origin_logo_key_img, camera2_key_img_path)
                         log.info("当前相似度分数为：%s" % str(score2))
-                        if score2 < 75:
-                            log.error("当前认为复现了卡logo情景，请检查！！！")
+                        if score2 < 98:
+                            log.error("图片对比有问题！！！")
                             if device_check.device_is_online():
                                 log.info("设备在线")
                                 device_check.logcat(int(configpar.get('Config', 'logcat_duration')) * 60)
@@ -203,8 +243,8 @@ if __name__ == '__main__':
 
                     score = cnns.generateScore(origin_logo_key_img, camera_key_img_path)
                     log.info("当前相似度分数为：%s" % str(score))
-                    if score < 75:
-                        log.error("当前认为复现了卡logo情景，请检查！！！")
+                    if score < 98:
+                        log.error("图片对比有问题！！！")
                         if device_check.device_is_online():
                             log.info("设备在线")
                             device_check.logcat(int(configpar.get('Config', 'logcat_duration')) * 60)
@@ -223,5 +263,9 @@ if __name__ == '__main__':
                 time.sleep(3)
     except Exception as e:
         log.info(str(e))
-
+        t_ser.logoutSer()
     log.info("停止压测.")
+
+
+if __name__ == '__main__':
+    run_script()
